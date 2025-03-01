@@ -1,6 +1,7 @@
 {
   "rewrites": [{ "source": "/(.*)", "destination": "/" }],
-  "buildCommand": "npm run build",
+  "buildCommand": "node vercel-build.js",
+  "installCommand": "npm install",
   "outputDirectory": "dist",
   "framework": "vite",
   "headers": [
