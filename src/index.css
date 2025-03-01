@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #FDF6E3;
+  color: #333333;
+}
+
+/* Custom styling for headings */
+h1, h2, h3, h4, h5, h6 {
+  color: #333333;
+}
+
+/* Custom button styling */
+.btn-primary {
+  @apply bg-gold hover:bg-gold/90 text-charcoal;
+}
+
+.btn-secondary {
+  @apply border-2 border-gold text-gold hover:bg-gold/10;
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Marquee Animation */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 2rem));
+  }
+}
+
+.animate-marquee {
+  animation: marquee 120s linear infinite;
+  will-change: transform;
+}
