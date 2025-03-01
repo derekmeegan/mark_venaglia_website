@@ -7,7 +7,6 @@
     "dev": "vite",
     "build": "vite build",
     "build:snap": "vite build && react-snap",
-    "build:vercel": "node vercel-build.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
