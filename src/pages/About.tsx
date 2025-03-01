@@ -1,18 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import SEO from '../components/SEO';
+import ImageOptimizer from '../components/ImageOptimizer';
 
 const About = () => {
   return (
     <div>
+      <SEO 
+        title="About Mark Venaglia | Artist & Cultural Curator"
+        description="Learn about Mark Venaglia, a renowned artist and cultural curator with over four decades of experience transforming how we experience New York City's art scene."
+        image="https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/mark_meet_me.jpeg"
+        url="https://markvenaglia.com/about"
+        type="website"
+      />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="max-w-4xl mx-auto">
           
           <div className="float-right ml-8 mb-4 w-80">
-            <img
+            <ImageOptimizer
               src="https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/mark_meet_me.jpeg"
               alt="Mark Venaglia in his studio"
               className="w-full h-[600px] object-cover rounded-lg shadow-lg"
+              width={320}
+              height={600}
             />
           </div>
           <h2 className="text-4xl font-serif font-bold text-charcoal mb-8">Meet Mark Venaglia</h2>

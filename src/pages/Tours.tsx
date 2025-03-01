@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import ReviewCarousel from '../components/ReviewCarousel';
 import { getCalApi } from "@calcom/embed-react";
 import ImageOptimizer from '../components/ImageOptimizer';
+import SEO from '../components/SEO';
 
 // Add Cal.com window interface
 declare global {
@@ -187,7 +188,16 @@ const Tours = () => {
   };
 
   return (
-    <div>
+    <div className="bg-white">
+      <SEO 
+        title="Art Tours | Mark Venaglia"
+        description="Discover exclusive art tours in New York City with Mark Venaglia. Experience the city's vibrant art scene with personalized guided tours."
+        image="https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/mark_tour_pic.png"
+        url="https://markvenaglia.com/tours"
+        type="website"
+      />
+      
+      {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         {/* Desktop Layout - Experience and Highlights */}
         <div className="hidden lg:grid grid-cols-2 gap-12 mb-16">

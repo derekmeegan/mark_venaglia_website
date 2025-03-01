@@ -1,19 +1,28 @@
-import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Logo from '../components/Logo';
+import SEO from '../components/SEO';
+import ImageOptimizer from '../components/ImageOptimizer';
 
 const Home = () => {
   return (
     <div className="relative min-h-screen">
+      <SEO 
+        title="Mark Venaglia | Artist & Cultural Curator"
+        description="Explore New York's art scene with renowned artist and cultural curator offering exclusive art tours and exhibitions."
+        image="https://images.unsplash.com/photo-1432937202807-b918d6a647ef?fm=jpg&q=80&w=1200&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        url="https://markvenaglia.com"
+        type="website"
+      />
 
       {/* Hero Section with Background */}
       <section className="relative min-h-screen">
         <div className="absolute inset-0">
-          <img
+          <ImageOptimizer
             src="https://images.unsplash.com/photo-1432937202807-b918d6a647ef?fm=jpg&amp;q=60&amp;w=3000&amp;ixlib=rb-4.0.3&amp;ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             alt="Statue of Liberty"
             className="w-full h-full object-cover"
+            width={1600}
+            height={900}
           />
           <div className="absolute inset-0 bg-charcoal/50 mix-blend-multiply" />
         </div>

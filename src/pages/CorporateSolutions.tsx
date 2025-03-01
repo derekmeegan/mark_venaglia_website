@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Users, Building2, Gem } from 'lucide-react';
+import SEO from '../components/SEO';
+import ImageOptimizer from '../components/ImageOptimizer';
 
 const organizations = [
   'Legal Services New York City',
@@ -68,8 +70,15 @@ const CorporateSolutions = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="bg-white">
+      <SEO 
+        title="Corporate Solutions | Mark Venaglia"
+        description="Discover how Mark Venaglia's artistic expertise can enhance your corporate environment through custom art installations, team-building workshops, and cultural experiences."
+        url="https://markvenaglia.com/corporate-solutions"
+        type="website"
+      />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Corporate Tours Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
           <div className="space-y-6">

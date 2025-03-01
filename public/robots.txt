@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Disallow admin page
+Disallow: /markspage
+
+# Sitemap location
+Sitemap: https://markvenaglia.com/sitemap.xml

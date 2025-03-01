@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft } from 'lucide-react';
+import SEO from '../components/SEO';
+import ImageOptimizer from '../components/ImageOptimizer';
 
 interface TimelineItem {
   id: string;
@@ -36,7 +38,7 @@ function toTitleCase(str) {
 }
 
 const CommissionDetail = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const [portfolioItem, setPortfolioItem] = useState<PortfolioItem | null>(null);
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -117,8 +119,18 @@ const CommissionDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-12">
+    <div className="bg-white">
+      {portfolioItem && (
+        <SEO 
+          title={`${portfolioItem.title} | Mark Venaglia`}
+          description={portfolioItem.description || `View details about ${portfolioItem.title}, a ${portfolioItem.category} artwork by Mark Venaglia created in ${portfolioItem.year}.`}
+          image={portfolioItem.image}
+          url={`https://markvenaglia.com/portfolio/${id}`}
+          type="article"
+        />
+      )}
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div>
             <h1 className="text-4xl font-serif font-bold text-navy mb-4">

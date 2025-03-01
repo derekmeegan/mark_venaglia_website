@@ -1,6 +1,8 @@
 import React, { useState, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
+import SEO from '../components/SEO';
+import ImageOptimizer from '../components/ImageOptimizer';
 
 interface FormData {
   name: string;
@@ -103,139 +105,150 @@ const handleSubmit = async (e: FormEvent): Promise<void> => {
   };
 
   return (
-    <div className="pt-20 pb-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row">
-          {/* Image Section */}
-          <div className="w-full md:w-1/2">
-            <img
-              src="https://images.unsplash.com/photo-1460551882935-745bdcaf8009?fm=jpg&q=60&w=3000&h=2800&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA=="
-              alt="Artist Studio"
-              className="w-full h-full object-cover"
-            />
-          </div>
+    <div className="bg-white">
+      <SEO 
+        title="Contact Mark Venaglia | Get in Touch"
+        description="Contact Mark Venaglia for inquiries about art tours, commissions, exhibitions, or corporate solutions. Get in touch with us today."
+        url="https://markvenaglia.com/contact"
+        type="website"
+      />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row">
+            {/* Image Section */}
+            <div className="w-full md:w-1/2">
+              <ImageOptimizer
+                src="https://images.unsplash.com/photo-1460551882935-745bdcaf8009?fm=jpg&q=60&w=3000&h=2800&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA=="
+                alt="Artist Studio"
+                className="w-full h-full object-cover"
+                width={800}
+                height={600}
+              />
+            </div>
 
-          {/* Form Section */}
-          <div className="w-full md:w-1/2 p-6">
-            <h1 className="text-2xl font-serif font-bold text-charcoal mb-4">Get in Touch</h1>
+            {/* Form Section */}
+            <div className="w-full md:w-1/2 p-6">
+              <h1 className="text-2xl font-serif font-bold text-charcoal mb-4">Get in Touch</h1>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-charcoal">
-                  Name *
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className={`mt-1 block w-full rounded-md border-cream bg-cream/50 px-3 py-1.5 text-charcoal shadow-sm focus:border-gold focus:ring-gold ${
-                    errors.name ? 'border-red-500' : ''
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-charcoal">
+                    Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className={`mt-1 block w-full rounded-md border-cream bg-cream/50 px-3 py-1.5 text-charcoal shadow-sm focus:border-gold focus:ring-gold ${
+                      errors.name ? 'border-red-500' : ''
+                    }`}
+                  />
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-charcoal">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className={`mt-1 block w-full rounded-md border-cream bg-cream/50 px-3 py-1.5 text-charcoal shadow-sm focus:border-gold focus:ring-gold ${
+                      errors.email ? 'border-red-500' : ''
+                    }`}
+                  />
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="subject" className="block text-sm font-medium text-charcoal">
+                    Subject
+                  </label>
+                  <select
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    className="mt-1 block w-full rounded-md border-cream bg-cream/50 px-3 py-1.5 text-charcoal shadow-sm focus:border-gold focus:ring-gold"
+                  >
+                    <option>Commission Inquiry</option>
+                    <option>Custom Tour Request</option>
+                    <option>Tour Booking</option>
+                    <option>General Question</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-charcoal">
+                    Message *
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    rows={3}
+                    value={formData.message}
+                    onChange={handleChange}
+                    className={`mt-1 block w-full rounded-md border-cream bg-cream/50 px-3 py-1.5 text-charcoal shadow-sm focus:border-gold focus:ring-gold ${
+                      errors.message ? 'border-red-500' : ''
+                    }`}
+                  />
+                  {errors.message && (
+                    <p className="mt-1 text-sm text-red-600">{errors.message}</p>
+                  )}
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`w-full inline-flex justify-center py-2 px-4 border border-transparent text-base font-medium rounded-full text-white bg-gold hover:bg-gold/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold transition-colors ${
+                    isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                )}
-              </div>
-              
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-charcoal">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={`mt-1 block w-full rounded-md border-cream bg-cream/50 px-3 py-1.5 text-charcoal shadow-sm focus:border-gold focus:ring-gold ${
-                    errors.email ? 'border-red-500' : ''
-                  }`}
-                />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                )}
-              </div>
-              
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-charcoal">
-                  Subject
-                </label>
-                <select
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border-cream bg-cream/50 px-3 py-1.5 text-charcoal shadow-sm focus:border-gold focus:ring-gold"
                 >
-                  <option>Commission Inquiry</option>
-                  <option>Custom Tour Request</option>
-                  <option>Tour Booking</option>
-                  <option>General Question</option>
-                </select>
-              </div>
-              
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-charcoal">
-                  Message *
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={3}
-                  value={formData.message}
-                  onChange={handleChange}
-                  className={`mt-1 block w-full rounded-md border-cream bg-cream/50 px-3 py-1.5 text-charcoal shadow-sm focus:border-gold focus:ring-gold ${
-                    errors.message ? 'border-red-500' : ''
-                  }`}
-                />
-                {errors.message && (
-                  <p className="mt-1 text-sm text-red-600">{errors.message}</p>
-                )}
-              </div>
-              
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`w-full inline-flex justify-center py-2 px-4 border border-transparent text-base font-medium rounded-full text-white bg-gold hover:bg-gold/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold transition-colors ${
-                  isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                {isSubmitting ? 'Sending...' : 'Send Message'}
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      {/* Thank You Modal */}
-      {showThankYouModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md mx-4 relative animate-fade-in">
-            <button
-              onClick={() => setShowThankYouModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X className="h-6 w-6" />
-            </button>
-            
-            <div className="text-center">
-              <h2 className="text-2xl font-serif font-bold text-charcoal mb-4">Thank You!</h2>
-              <p className="text-gray-600 mb-6">
-                I appreciate you reaching out. I'll get back to you as soon as possible. In the meantime, feel free to explore more of my work.
-              </p>
-              <Link
-                to="/portfolio"
-                onClick={() => setShowThankYouModal(false)}
-                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full text-white bg-gold hover:bg-gold/90 transition-colors"
-              >
-                View Portfolio
-              </Link>
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
+                </button>
+              </form>
             </div>
           </div>
         </div>
-      )}
+
+        {/* Thank You Modal */}
+        {showThankYouModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-md mx-4 relative animate-fade-in">
+              <button
+                onClick={() => setShowThankYouModal(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+              
+              <div className="text-center">
+                <h2 className="text-2xl font-serif font-bold text-charcoal mb-4">Thank You!</h2>
+                <p className="text-gray-600 mb-6">
+                  I appreciate you reaching out. I'll get back to you as soon as possible. In the meantime, feel free to explore more of my work.
+                </p>
+                <Link
+                  to="/portfolio"
+                  onClick={() => setShowThankYouModal(false)}
+                  className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full text-white bg-gold hover:bg-gold/90 transition-colors"
+                >
+                  View Portfolio
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

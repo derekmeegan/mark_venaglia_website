@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import{ useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import SEO from '../components/SEO';
 
 function toTitleCase(str) {
   return str.replace(
@@ -48,8 +49,15 @@ const Portfolio = () => {
   };
 
   return (
-    <div className="pb-16 pt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="bg-white">
+      <SEO 
+        title="Portfolio | Mark Venaglia"
+        description="Explore Mark Venaglia's portfolio of commissioned and inventory artwork. View his unique artistic style and creative vision."
+        url="https://markvenaglia.com/portfolio"
+        type="website"
+      />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Category Tabs */}
         <div className="grid grid-cols-2 border-b border-gray-200 mb-8">
           <button
