@@ -1,9 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Link, useNavigate } from 'react-router-dom';
 import ReviewCarousel from '../components/ReviewCarousel';
 import { getCalApi } from "@calcom/embed-react";
+import ImageOptimizer from '../components/ImageOptimizer';
+
+// Add Cal.com window interface
+declare global {
+  interface Window {
+    Cal?: {
+      showCalendar: () => void;
+      [key: string]: any;
+    };
+  }
+}
 
 interface Tour {
   id: string;
@@ -18,8 +29,70 @@ const Tours = () => {
   const [tours, setTours] = useState<Tour[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedNamespace, setSelectedNamespace] = useState<string | null>(null);
+  const [calNamespaces, setCalNamespaces] = useState<Set<string>>(new Set());
+  const calInitializedRef = useRef<Set<string>>(new Set());
   const navigate = useNavigate();
+
+  // Preload images function
+  const preloadImages = (imageUrls: string[]) => {
+    imageUrls.forEach(url => {
+      if (url) {
+        const img = new Image();
+        img.src = url;
+      }
+    });
+  };
+
+  // Initialize Cal.com for each unique namespace found in tours
+  useEffect(() => {
+    const initializeCalNamespaces = async () => {
+      // Extract unique namespaces from tour URLs
+      const namespaces = new Set<string>();
+      
+      tours.forEach(tour => {
+        if (tour.url) {
+          const match = tour.url.match(/cal\.com\/(.+?)$/);
+          if (match) {
+            const calLink = match[1];
+            const namespace = calLink.split('/')[1]; // Get the second part after the slash
+            if (namespace) {
+              namespaces.add(namespace);
+            }
+          }
+        }
+      });
+      
+      // Initialize Cal for each namespace if not already initialized
+      for (const namespace of namespaces) {
+        if (!calInitializedRef.current.has(namespace)) {
+          try {
+            console.log(`Initializing Cal for namespace: ${namespace}`);
+            const cal = await getCalApi({ namespace, debug: true });
+            cal("ui", {
+              styles: { 
+                branding: { brandColor: "#f4b305" }
+              },
+              hideEventTypeDetails: false,
+              layout: "month_view"
+            });
+            
+            // Force Cal to preload for this namespace
+            cal("preload", {});
+            
+            calInitializedRef.current.add(namespace);
+          } catch (error) {
+            console.error(`Error initializing Cal for namespace ${namespace}:`, error);
+          }
+        }
+      }
+      
+      setCalNamespaces(namespaces);
+    };
+    
+    if (tours.length > 0) {
+      initializeCalNamespaces();
+    }
+  }, [tours]);
 
   useEffect(() => {
     const fetchTours = async () => {
@@ -30,6 +103,13 @@ const Tours = () => {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
+        
+        // Preload tour images as soon as we get the data
+        if (data && data.length > 0) {
+          const imageUrls = data.map(tour => tour.image).filter(Boolean);
+          preloadImages(imageUrls);
+        }
+        
         setTours(data || []);
       } catch (err) {
         console.error('Error fetching tours:', err);
@@ -42,37 +122,68 @@ const Tours = () => {
     fetchTours();
   }, []);
 
-  useEffect(() => {
-    if (selectedNamespace) {
-      (async function () {
-        const cal = await getCalApi({ namespace: selectedNamespace });
-        cal("ui", {
-          styles: { 
-            branding: { brandColor: "#f4b305" }
-          },
-          hideEventTypeDetails: false,
-          layout: "month_view"
-        });
-      })();
+  // This function extracts namespace and link from a Cal.com URL
+  const parseCalUrl = (url: string | null) => {
+    if (!url) return { namespace: null, link: null };
+    
+    const match = url.match(/cal\.com\/(.+?)$/);
+    if (!match) return { namespace: null, link: null };
+    
+    const calLink = match[1];
+    const parts = calLink.split('/');
+    
+    if (parts.length >= 2) {
+      return {
+        namespace: parts[1],
+        link: calLink
+      };
     }
-  }, [selectedNamespace]);
+    
+    return { namespace: null, link: null };
+  };
 
-  const handleBooking = (url: string | null) => {
-    if (!url) {
+  const handleBooking = (tour: Tour, event: React.MouseEvent<HTMLButtonElement>) => {
+    // Prevent the default behavior to stop the data attributes from triggering automatically
+    event.preventDefault();
+    
+    if (!tour.url) {
       navigate('/contact');
       return;
     }
 
     // Parse the Cal.com URL to get the namespace and link
-    const match = url.match(/cal\.com\/(.+?)$/);
-    if (!match) {
+    const { namespace, link } = parseCalUrl(tour.url);
+    
+    if (!namespace || !link) {
       navigate('/contact');
       return;
     }
-
-    const calLink = match[1];
-    const namespace = calLink.split('/')[1]; // Get the second part after the slash
-    setSelectedNamespace(namespace);
+    
+    // Log that we're trying to open the calendar
+    console.log(`Attempting to open calendar for namespace: ${namespace}, link: ${link}`);
+    
+    // Try to manually trigger the Cal API if it's available in the window object
+    try {
+      const calNamespace = (window as any).Cal?.ns?.[namespace];
+      if (calNamespace) {
+        console.log("Found Cal namespace, triggering modal");
+        // Use modal instead of inline to prevent button size issues
+        calNamespace("modal", {
+          calLink: link,
+          config: {
+            layout: "month_view"
+          }
+        });
+      } else {
+        console.log("Cal namespace not found, falling back to direct URL");
+        // Fallback to opening the URL directly
+        window.open(`https://cal.com/${link}`, '_blank');
+      }
+    } catch (error) {
+      console.error("Error manually triggering Cal:", error);
+      // Fallback to opening the URL directly
+      window.open(`https://cal.com/${link}`, '_blank');
+    }
   };
 
   return (
@@ -116,10 +227,13 @@ const Tours = () => {
 
           {/* Right Column - Image */}
           <div className="relative h-[475px] rounded-lg overflow-hidden shadow-lg">
-            <img
+            <ImageOptimizer
               src="https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/mark_tour_pic.png"
               alt="Art Gallery Experience"
               className="absolute inset-0 w-full h-full object-cover object-top"
+              width={800}
+              height={475}
+              quality={85}
             />
           </div>
         </div>
@@ -162,10 +276,13 @@ const Tours = () => {
           ) : (
             tours.map((tour) => (
               <div key={tour.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
-                <img
+                <ImageOptimizer
                   src={tour.image}
                   alt={tour.title}
                   className="w-full h-36 object-cover"
+                  width={400}
+                  height={144}
+                  quality={80}
                 />
                 <div className="p-4 pt-2 flex flex-col flex-1">
                   <h4 className="text-lg font-semibold mb-1">{tour.title}</h4>
@@ -173,10 +290,7 @@ const Tours = () => {
                   <div className="mt-auto">
                     {tour.url ? (
                       <button
-                        data-cal-namespace={tour.url.split('/')[4]}
-                        data-cal-link={tour.url.split('cal.com/')[1]}
-                        data-cal-config='{"layout":"month_view"}'
-                        onClick={() => handleBooking(tour.url)}
+                        onClick={(e) => handleBooking(tour, e)}
                         className="w-full inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm rounded-md text-white bg-gold hover:bg-gold/90 font-bold"
                       >
                         Book
