@@ -12,6 +12,7 @@ const CorporateSolutions = lazy(() => import('./pages/CorporateSolutions'));
 const Contact = lazy(() => import('./pages/Contact'));
 const CommissionDetail = lazy(() => import('./pages/CommissionDetail'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Loading fallback
 const PageLoader = () => (
@@ -24,10 +25,11 @@ function App() {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
   const isAdminPage = location.pathname === '/markspage';
+  const isNotFoundPage = location.pathname === '/404';
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {!isAdminPage && <Navbar />}
+      {!isAdminPage && !isNotFoundPage && <Navbar />}
       <main className="flex-grow">
         <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -39,10 +41,11 @@ function App() {
             <Route path="/corporate-solutions" element={<CorporateSolutions />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/markspage" element={<AdminPage />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </main>
-      {!isHomePage && !isAdminPage && <Footer />}
+      {!isHomePage && !isAdminPage && !isNotFoundPage && <Footer />}
     </div>
   );
 }
