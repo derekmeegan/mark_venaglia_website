@@ -54,12 +54,19 @@ const PortfolioManager: React.FC<Props> = ({
   const [newPortfolioItem, setNewPortfolioItem] = useState<Omit<PortfolioItem, 'id'>>({
     title: '',
     year: '',
-    category: '',
+    category: 'inventory',
     description: '',
     image: ''
   });
 
-  const categoryOptions = ['Inventory', 'Commission'];
+  const categoryOptions = ['inventory', 'commission'];
+
+  // Helper function to convert string to title case
+  const toTitleCase = (str: string) => {
+    return str.replace(/\w\S*/g, (txt) => {
+      return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
+    });
+  };
 
   useEffect(() => {
     if (selectedPortfolioId) {
@@ -174,7 +181,7 @@ const PortfolioManager: React.FC<Props> = ({
       setNewPortfolioItem({
         title: '',
         year: '',
-        category: '',
+        category: 'inventory',
         description: '',
         image: ''
       });
@@ -310,7 +317,7 @@ const PortfolioManager: React.FC<Props> = ({
               >
                 {categoryOptions.map(option => (
                   <option key={option} value={option}>
-                    {option}
+                    {toTitleCase(option)}
                   </option>
                 ))}
               </select>
@@ -346,7 +353,7 @@ const PortfolioManager: React.FC<Props> = ({
             <div className="flex items-start justify-between">
               <div className="space-y-2">
                 <h3 className="text-xl font-semibold">{item.title}</h3>
-                <p className="text-gray-600">{item.year} • {item.category}</p>
+                <p className="text-gray-600">{item.year} • {toTitleCase(item.category)}</p>
                 <p className="text-gray-700">{item.description}</p>
                 {item.image && (
                   <img
@@ -422,7 +429,7 @@ const PortfolioManager: React.FC<Props> = ({
             <option value="" disabled>Select a category</option>
             {categoryOptions.map(option => (
               <option key={option} value={option}>
-                {option}
+                {toTitleCase(option)}
               </option>
             ))}
           </select>
