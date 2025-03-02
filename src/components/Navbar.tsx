@@ -5,17 +5,30 @@ import Logo from './Logo';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === '/';
 
+  // Close mobile menu when route changes
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+    setIsOpen(false);
+  }, [location.pathname]);
+
+  // Prevent body scroll when menu is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isOpen]);
+
+  // Function to close the menu
+  const closeMenu = () => {
+    setIsOpen(false);
+  };
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -26,32 +39,30 @@ const Navbar = () => {
     { name: 'Contact', path: '/contact' },
   ];
 
-  const getNavbarPosition = () => {
-    return isHomePage ? 'absolute' : 'relative';
-  };
+  // Style helpers
+  const getNavbarPosition = () => isHomePage ? 'absolute' : 'relative';
 
   const getLinkColor = (isActive: boolean) => {
-    if (isHomePage) {
-      return 'text-cream hover:text-gold relative after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-0.5 ' + 
-        (isActive ? 'after:bg-gold' : 'after:bg-transparent after:hover:bg-gold/50');
-    }
-    return 'text-charcoal hover:text-gold relative after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-0.5 ' + 
-      (isActive ? 'after:bg-gold' : 'after:bg-transparent after:hover:bg-gold/50');
+    const baseStyle = isHomePage 
+      ? 'text-cream hover:text-gold' 
+      : 'text-charcoal hover:text-gold';
+    
+    const underlineStyle = 'relative after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-0.5';
+    const activeUnderline = isActive ? 'after:bg-gold' : 'after:bg-transparent after:hover:bg-gold/50';
+    
+    return `${baseStyle} ${underlineStyle} ${activeUnderline}`;
   };
 
   const getMobileLinkColor = (isActive: boolean) => {
     if (isHomePage) {
-      return isActive
-        ? 'text-gold relative after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-0.5 after:bg-gold'
-        : 'text-cream hover:text-gold relative after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-0.5 after:bg-transparent after:hover:bg-gold/50';
+      return isActive ? 'text-gold font-bold' : 'text-cream hover:text-gold';
     }
-    return isActive
-      ? 'text-gold relative after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-0.5 after:bg-gold'
-      : 'text-charcoal hover:text-gold relative after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-0.5 after:bg-transparent after:hover:bg-gold/50';
+    return isActive ? 'text-gold font-bold' : 'text-charcoal hover:text-gold';
   };
 
   return (
     <nav className={`w-full z-50 ${getNavbarPosition()} top-0 left-0`}>
+      {/* Main Navbar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -77,36 +88,40 @@ const Navbar = () => {
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={() => setIsOpen(true)}
               className={`inline-flex items-center justify-center p-2 rounded-md focus:outline-none ${
                 isHomePage ? 'text-cream hover:text-gold' : 'text-charcoal hover:text-gold'
               }`}
+              aria-label="Open menu"
+              type="button"
             >
-              {isOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
+              <Menu className="h-6 w-6" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Mobile Menu Overlay */}
       {isOpen && (
-        <div className={`fixed inset-0 z-50 ${isHomePage ? 'bg-charcoal' : 'bg-white'}`}>
+        <div className="fixed inset-0 z-50" style={{backgroundColor: isHomePage ? '#333333' : '#ffffff'}}>
           <div className="flex flex-col h-full">
             {/* Mobile Header */}
             <div className="flex justify-between items-start px-4 pt-4">
-              <div className="flex-shrink-0">
-                <Logo />
+              <Link
+                  to="/"
+                  className="flex-shrink-0 z-50"
+                  onClick={closeMenu}
+                >
+                  <Logo />
+              </Link>
+              {/* Close button with larger clickable area */}
+              <div className="p-4 cursor-pointer mt-2 z-50" onClick={closeMenu}>
+                <div className={`flex items-center justify-center w-12 h-12 rounded-full ${
+                  isHomePage ? 'text-cream bg-charcoal/50' : 'text-charcoal bg-gray-100'
+                } hover:text-gold`}>
+                  <X className="h-8 w-8" />
+                </div>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className={`p-2 ${isHomePage ? 'text-cream' : 'text-charcoal'} hover:text-gold mt-4`}
-              >
-                <X className="h-6 w-6" />
-              </button>
             </div>
 
             {/* Mobile Links */}
@@ -118,7 +133,7 @@ const Navbar = () => {
                   className={`text-lg font-medium ${getMobileLinkColor(
                     location.pathname === link.path
                   )}`}
-                  onClick={() => setIsOpen(false)}
+                  onClick={closeMenu}
                 >
                   {link.name}
                 </Link>

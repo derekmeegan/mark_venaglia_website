@@ -8,7 +8,7 @@
     "build": "vite build",
     "build:snap": "vite build && react-snap",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview --port 3000"
   },
   "dependencies": {
     "@calcom/embed-react": "^1.3.0",
