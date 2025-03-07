@@ -9,7 +9,8 @@ const Home = () => {
       <SEO 
         title="Mark Venaglia | Artist & Cultural Curator"
         description="Explore New York's art scene with renowned artist and cultural curator offering exclusive art tours and exhibitions."
-        image="https://images.unsplash.com/photo-1432937202807-b918d6a647ef?fm=jpg&q=80&w=1200&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        // image="https://images.unsplash.com/photo-1432937202807-b918d6a647ef?fm=jpg&q=80&w=1200&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        image = 'https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/SOAR_Venaglia%20with%20Eve_interior-02.jpeg'
         url="https://markvenaglia.com"
         type="website"
       />
@@ -18,9 +19,10 @@ const Home = () => {
       <section className="relative min-h-screen">
         <div className="absolute inset-0">
           <ImageOptimizer
-            src="https://images.unsplash.com/photo-1432937202807-b918d6a647ef?fm=jpg&amp;q=60&amp;w=3000&amp;ixlib=rb-4.0.3&amp;ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            // src="https://images.unsplash.com/photo-1432937202807-b918d6a647ef?fm=jpg&amp;q=60&amp;w=3000&amp;ixlib=rb-4.0.3&amp;ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            src = 'https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/SOAR_Venaglia%20with%20Eve_interior-02.jpeg'
             alt="Statue of Liberty"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-top"
             width={1600}
             height={900}
           />
