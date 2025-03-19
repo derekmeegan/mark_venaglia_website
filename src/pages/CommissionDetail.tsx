@@ -161,7 +161,7 @@ const CommissionDetail = () => {
           <div className="relative">
             {/* The line now stops at the last timeline item */}
             <div 
-              className="absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-gold/30"
+              className="absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-gold/30 hidden sm:block"
               style={{
                 top: '24px',
                 height: `calc(100% - ${48 + (timelineItems.length - 1) * 96}px)`
@@ -171,7 +171,7 @@ const CommissionDetail = () => {
               {timelineItems.map((stage, index) => (
                 <div key={stage.id} className="relative">
                   <div className="absolute left-1/2 transform -translate-x-1/2 -mt-2">
-                    <div className="w-4 h-4 rounded-full bg-gold border-4 border-white" />
+                    <div className="w-4 h-4 rounded-full bg-gold border-4 border-white hidden sm:block" />
                   </div>
                   <div
                     className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${
