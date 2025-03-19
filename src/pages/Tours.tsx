@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,7 +12,9 @@ declare global {
   interface Window {
     Cal?: {
       showCalendar: () => void;
-      [key: string]: any;
+      ns?: {
+        [key: string]: any;
+      };
     };
   }
 }
@@ -30,7 +32,6 @@ const Tours = () => {
   const [tours, setTours] = useState<Tour[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [calNamespaces, setCalNamespaces] = useState<Set<string>>(new Set());
   const calInitializedRef = useRef<Set<string>>(new Set());
   const navigate = useNavigate();
 
@@ -68,7 +69,7 @@ const Tours = () => {
         if (!calInitializedRef.current.has(namespace)) {
           try {
             console.log(`Initializing Cal for namespace: ${namespace}`);
-            const cal = await getCalApi({ namespace, debug: true });
+            const cal = await getCalApi({ namespace });
             cal("ui", {
               styles: { 
                 branding: { brandColor: "#f4b305" }
@@ -78,7 +79,7 @@ const Tours = () => {
             });
             
             // Force Cal to preload for this namespace
-            cal("preload", {});
+            cal("preload", { calLink: "" });
             
             calInitializedRef.current.add(namespace);
           } catch (error) {
@@ -86,8 +87,6 @@ const Tours = () => {
           }
         }
       }
-      
-      setCalNamespaces(namespaces);
     };
     
     if (tours.length > 0) {
@@ -143,10 +142,7 @@ const Tours = () => {
     return { namespace: null, link: null };
   };
 
-  const handleBooking = (tour: Tour, event: React.MouseEvent<HTMLButtonElement>) => {
-    // Prevent the default behavior to stop the data attributes from triggering automatically
-    event.preventDefault();
-    
+  const handleTourClick = (tour: Tour) => {
     if (!tour.url) {
       navigate('/contact');
       return;
@@ -285,7 +281,12 @@ const Tours = () => {
             </div>
           ) : (
             tours.map((tour) => (
-              <div key={tour.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
+              <div 
+                key={tour.id} 
+                className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer transform transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:border-gold hover:border-2 relative"
+                onClick={() => handleTourClick(tour)}
+              >
+                <div className="absolute inset-0 bg-gold opacity-0 hover:opacity-10 transition-opacity duration-300 pointer-events-none"></div>
                 <ImageOptimizer
                   src={tour.image}
                   alt={tour.title}
@@ -296,26 +297,8 @@ const Tours = () => {
                 />
                 <div className="p-4 pt-2 flex flex-col flex-1">
                   <h4 className="text-lg font-semibold mb-1">{tour.title}</h4>
-                  <p className="text-gray-600 text-sm mb-3">{tour.duration}</p>
-                  <div className="mt-auto">
-                    {tour.url ? (
-                      <button
-                        onClick={(e) => handleBooking(tour, e)}
-                        className="w-full inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm rounded-md text-white bg-gold hover:bg-gold/90 font-bold"
-                      >
-                        Book
-                        <ArrowRight className="ml-1 h-4 w-4 stroke-[3]" />
-                      </button>
-                    ) : (
-                      <Link
-                        to="/contact"
-                        className="w-full inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm rounded-md text-white bg-gold hover:bg-gold/90 font-bold"
-                      >
-                        Contact
-                        <ArrowRight className="ml-1 h-4 w-4 stroke-[3]" />
-                      </Link>
-                    )}
-                  </div>
+                  <p className="text-gray-600 text-sm mb-1">{tour.duration}</p>
+                  <p className="text-gray-700 font-medium">{tour.price}</p>
                 </div>
               </div>
             ))
