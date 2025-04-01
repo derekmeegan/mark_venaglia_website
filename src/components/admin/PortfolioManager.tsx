@@ -58,6 +58,7 @@ const PortfolioManager: React.FC<Props> = ({
     description: '',
     image: ''
   });
+  const [isMobile, setIsMobile] = useState(false);
 
   const categoryOptions = ['inventory', 'commission'];
 
@@ -73,6 +74,21 @@ const PortfolioManager: React.FC<Props> = ({
       fetchTimelineItems(selectedPortfolioId);
     }
   }, [selectedPortfolioId]);
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    // Check initially
+    checkIfMobile();
+    
+    // Add event listener
+    window.addEventListener('resize', checkIfMobile);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
 
   const fetchTimelineItems = async (portfolioId: string) => {
     try {
@@ -354,7 +370,12 @@ const PortfolioManager: React.FC<Props> = ({
               <div className="space-y-2">
                 <h3 className="text-xl font-semibold">{item.title}</h3>
                 <p className="text-gray-600">{item.year} • {toTitleCase(item.category)}</p>
-                <p className="text-gray-700">{item.description}</p>
+                <p className="text-gray-700">
+                  {isMobile && item.description.length > 100
+                    ? `${item.description.substring(0, 100)}...`
+                    : item.description
+                  }
+                </p>
                 {item.image && (
                   <img
                     src={item.image}
