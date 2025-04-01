@@ -366,25 +366,9 @@ const PortfolioManager: React.FC<Props> = ({
               </div>
             </div>
           ) : (
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <h3 className="text-xl font-semibold">{item.title}</h3>
-                <p className="text-gray-600">{item.year} • {toTitleCase(item.category)}</p>
-                <p className="text-gray-700">
-                  {isMobile && item.description.length > 100
-                    ? `${item.description.substring(0, 100)}...`
-                    : item.description
-                  }
-                </p>
-                {item.image && (
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-48 h-32 object-cover rounded-lg"
-                  />
-                )}
-              </div>
-              <div className="flex space-x-2">
+            <div className="flex flex-col">
+              {/* Action buttons - shown above on mobile, to the right on desktop */}
+              <div className={`${isMobile ? 'mb-3' : 'hidden'} flex space-x-2`}>
                 <button
                   onClick={() => {
                     setSelectedPortfolioId(item.id);
@@ -406,6 +390,51 @@ const PortfolioManager: React.FC<Props> = ({
                 >
                   <Trash2 className="h-5 w-5" />
                 </button>
+              </div>
+              
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                  <h3 className="text-xl font-semibold">{item.title}</h3>
+                  <p className="text-gray-600">{item.year} • {toTitleCase(item.category)}</p>
+                  <p className="text-gray-700">
+                    {isMobile && item.description.length > 100
+                      ? `${item.description.substring(0, 100)}...`
+                      : item.description
+                    }
+                  </p>
+                  {item.image && (
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-48 h-32 object-cover rounded-lg"
+                    />
+                  )}
+                </div>
+                
+                {/* Action buttons for desktop view */}
+                <div className={`${isMobile ? 'hidden' : 'flex'} space-x-2`}>
+                  <button
+                    onClick={() => {
+                      setSelectedPortfolioId(item.id);
+                      setShowTimelineModal(true);
+                    }}
+                    className="px-4 py-2 rounded-md bg-gold/10 text-gold hover:bg-gold/20"
+                  >
+                    Timeline
+                  </button>
+                  <button
+                    onClick={() => setEditingPortfolio(item)}
+                    className="p-2 text-gray-600 hover:text-gold"
+                  >
+                    <Edit className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => handleDeletePortfolio(item.id)}
+                    className="p-2 text-gray-600 hover:text-red-500"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             </div>
           )}
