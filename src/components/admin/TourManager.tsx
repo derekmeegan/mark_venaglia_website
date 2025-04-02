@@ -183,27 +183,39 @@ const TourManager: React.FC<Props> = ({
         <div key={tour.id} className="bg-gray-50 p-6 rounded-lg">
           {editingTour?.id === tour.id ? (
             <div className="space-y-4">
-              <input
-                type="text"
-                value={editingTour.title}
-                onChange={e => setEditingTour({ ...editingTour, title: e.target.value })}
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-                placeholder="Title"
-              />
-              <input
-                type="text"
-                value={editingTour.duration}
-                onChange={e => setEditingTour({ ...editingTour, duration: e.target.value })}
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-                placeholder="Duration"
-              />
-              <input
-                type="text"
-                value={editingTour.url || ''}
-                onChange={e => setEditingTour({ ...editingTour, url: e.target.value })}
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-                placeholder="Cal.com URL (e.g., https://cal.com/username/event)"
-              />
+              <div>
+                <label htmlFor="edit-tour-title" className="block text-sm font-medium text-charcoal mb-1">Title</label>
+                <input
+                  id="edit-tour-title"
+                  type="text"
+                  value={editingTour.title}
+                  onChange={e => setEditingTour({ ...editingTour, title: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  placeholder="Title"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-tour-duration" className="block text-sm font-medium text-charcoal mb-1">Duration</label>
+                <input
+                  id="edit-tour-duration"
+                  type="text"
+                  value={editingTour.duration}
+                  onChange={e => setEditingTour({ ...editingTour, duration: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  placeholder="Duration"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-tour-url" className="block text-sm font-medium text-charcoal mb-1">Booking URL</label>
+                <input
+                  id="edit-tour-url"
+                  type="text"
+                  value={editingTour.url || ''}
+                  onChange={e => setEditingTour({ ...editingTour, url: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  placeholder="Cal.com URL (e.g., https://cal.com/username/event)"
+                />
+              </div>
               <ImageUploadField
                 label="Tour Image"
                 value={editingTour.image}
@@ -277,27 +289,39 @@ const TourManager: React.FC<Props> = ({
         title="Add New Tour"
       >
         <div className="space-y-4">
-          <input
-            type="text"
-            value={newTour.title}
-            onChange={e => setNewTour({ ...newTour, title: e.target.value })}
-            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-            placeholder="Title"
-          />
-          <input
-            type="text"
-            value={newTour.duration}
-            onChange={e => setNewTour({ ...newTour, duration: e.target.value })}
-            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-            placeholder="Duration"
-          />
-          <input
-            type="text"
-            value={newTour.url || ''}
-            onChange={e => setNewTour({ ...newTour, url: e.target.value })}
-            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-            placeholder="Cal.com URL (e.g., https://cal.com/username/event)"
-          />
+          <div>
+            <label htmlFor="add-tour-title" className="block text-sm font-medium text-charcoal mb-1">Title</label>
+            <input
+              id="add-tour-title"
+              type="text"
+              value={newTour.title}
+              onChange={e => setNewTour({ ...newTour, title: e.target.value })}
+              className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+              placeholder="Title"
+            />
+          </div>
+          <div>
+            <label htmlFor="add-tour-duration" className="block text-sm font-medium text-charcoal mb-1">Duration</label>
+            <input
+              id="add-tour-duration"
+              type="text"
+              value={newTour.duration}
+              onChange={e => setNewTour({ ...newTour, duration: e.target.value })}
+              className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+              placeholder="Duration"
+            />
+          </div>
+          <div>
+            <label htmlFor="add-tour-url" className="block text-sm font-medium text-charcoal mb-1">Booking URL</label>
+            <input
+              id="add-tour-url"
+              type="text"
+              value={newTour.url || ''}
+              onChange={e => setNewTour({ ...newTour, url: e.target.value })}
+              className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+              placeholder="Cal.com URL (e.g., https://cal.com/username/event)"
+            />
+          </div>
           <ImageUploadField
             label="Tour Image"
             value={newTour.image}

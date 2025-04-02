@@ -20,6 +20,7 @@ interface PortfolioItem {
   category: string;
   description: string;
   image: string;
+  tags?: string[];
   timeline?: TimelineItem[];
 }
 
@@ -56,9 +57,12 @@ const PortfolioManager: React.FC<Props> = ({
     year: '',
     category: 'inventory',
     description: '',
-    image: ''
+    image: '',
+    tags: []
   });
   const [isMobile, setIsMobile] = useState(false);
+  const [tagInput, setTagInput] = useState('');
+  const [existingTags, setExistingTags] = useState<string[]>([]);
 
   const categoryOptions = ['inventory', 'commission'];
 
@@ -69,11 +73,35 @@ const PortfolioManager: React.FC<Props> = ({
     });
   };
 
+  // Helper function to ensure tags are always an array
+  const ensureTagsArray = (tags: any): string[] => {
+    if (!tags) return [];
+    if (Array.isArray(tags)) return tags;
+    try {
+      // If tags is a JSON string, parse it
+      const parsedTags = JSON.parse(tags);
+      return Array.isArray(parsedTags) ? parsedTags : [];
+    } catch (e) {
+      // If parsing fails, return empty array
+      return [];
+    }
+  };
+
   useEffect(() => {
     if (selectedPortfolioId) {
       fetchTimelineItems(selectedPortfolioId);
     }
   }, [selectedPortfolioId]);
+
+  useEffect(() => {
+    // Extract all unique tags from portfolio items
+    const allTags = new Set<string>();
+    portfolioItems.forEach(item => {
+      const itemTags = ensureTagsArray(item.tags);
+      itemTags.forEach(tag => allTags.add(tag));
+    });
+    setExistingTags(Array.from(allTags).sort());
+  }, [portfolioItems]);
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -199,7 +227,8 @@ const PortfolioManager: React.FC<Props> = ({
         year: '',
         category: 'inventory',
         description: '',
-        image: ''
+        image: '',
+        tags: []
       });
       setShowAddForm(false);
       onPortfolioItemAdded();
@@ -312,38 +341,148 @@ const PortfolioManager: React.FC<Props> = ({
         <div key={item.id} className="bg-gray-50 p-6 rounded-lg">
           {editingPortfolio?.id === item.id ? (
             <div className="space-y-4">
-              <input
-                type="text"
-                value={editingPortfolio.title}
-                onChange={e => setEditingPortfolio({ ...editingPortfolio, title: e.target.value })}
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-                placeholder="Title"
-              />
-              <input
-                type="text"
-                value={editingPortfolio.year}
-                onChange={e => setEditingPortfolio({ ...editingPortfolio, year: e.target.value })}
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-                placeholder="Year"
-              />
-              <select
-                value={editingPortfolio.category}
-                onChange={e => setEditingPortfolio({ ...editingPortfolio, category: e.target.value })}
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-              >
-                {categoryOptions.map(option => (
-                  <option key={option} value={option}>
-                    {toTitleCase(option)}
-                  </option>
-                ))}
-              </select>
-              <textarea
-                value={editingPortfolio.description}
-                onChange={e => setEditingPortfolio({ ...editingPortfolio, description: e.target.value })}
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-                rows={4}
-                placeholder="Description"
-              />
+              <div>
+                <label htmlFor="edit-title" className="block text-sm font-medium text-charcoal mb-1">Title</label>
+                <input
+                  id="edit-title"
+                  type="text"
+                  value={editingPortfolio.title}
+                  onChange={e => setEditingPortfolio({ ...editingPortfolio, title: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  placeholder="Title"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-year" className="block text-sm font-medium text-charcoal mb-1">Year</label>
+                <input
+                  id="edit-year"
+                  type="text"
+                  value={editingPortfolio.year}
+                  onChange={e => setEditingPortfolio({ ...editingPortfolio, year: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  placeholder="Year"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-category" className="block text-sm font-medium text-charcoal mb-1">Category</label>
+                <select
+                  id="edit-category"
+                  value={editingPortfolio.category}
+                  onChange={e => setEditingPortfolio({ ...editingPortfolio, category: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                >
+                  {categoryOptions.map(option => (
+                    <option key={option} value={option}>
+                      {toTitleCase(option)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="edit-description" className="block text-sm font-medium text-charcoal mb-1">Description</label>
+                <textarea
+                  id="edit-description"
+                  value={editingPortfolio.description}
+                  onChange={e => setEditingPortfolio({ ...editingPortfolio, description: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  rows={4}
+                  placeholder="Description"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-tags" className="block text-sm font-medium text-charcoal mb-1">Tags</label>
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {ensureTagsArray(editingPortfolio.tags).map((tag, index) => (
+                      <div key={index} className="flex items-center bg-gray-100 px-3 py-1 rounded-full">
+                        <span className="text-sm text-gray-700">{tag}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentTags = ensureTagsArray(editingPortfolio.tags);
+                            const newTags = [...currentTags];
+                            newTags.splice(index, 1);
+                            setEditingPortfolio({ ...editingPortfolio, tags: newTags });
+                          }}
+                          className="ml-2 text-gray-500 hover:text-red-500"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex">
+                    <input
+                      id="edit-tags"
+                      type="text"
+                      value={tagInput}
+                      onChange={e => setTagInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && tagInput.trim()) {
+                          e.preventDefault();
+                          const newTag = tagInput.trim();
+                          const currentTags = ensureTagsArray(editingPortfolio.tags);
+                          if (!currentTags.includes(newTag)) {
+                            setEditingPortfolio({
+                              ...editingPortfolio,
+                              tags: [...currentTags, newTag]
+                            });
+                          }
+                          setTagInput('');
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 rounded-l-md border border-gray-300 focus:border-gold focus:ring-gold"
+                      placeholder="Add a tag and press Enter"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (tagInput.trim()) {
+                          const newTag = tagInput.trim();
+                          const currentTags = ensureTagsArray(editingPortfolio.tags);
+                          if (!currentTags.includes(newTag)) {
+                            setEditingPortfolio({
+                              ...editingPortfolio,
+                              tags: [...currentTags, newTag]
+                            });
+                          }
+                          setTagInput('');
+                        }
+                      }}
+                      className="px-4 py-2 bg-gold text-white rounded-r-md hover:bg-gold/90"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  
+                  {/* Existing tags from other items */}
+                  {existingTags.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs text-gray-500 mb-2">Click to add existing tags:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {existingTags
+                          .filter(tag => !ensureTagsArray(editingPortfolio.tags).includes(tag))
+                          .map((tag, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => {
+                                const currentTags = ensureTagsArray(editingPortfolio.tags);
+                                setEditingPortfolio({
+                                  ...editingPortfolio,
+                                  tags: [...currentTags, tag]
+                                });
+                              }}
+                              className="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700 hover:bg-gold/10 hover:text-gold"
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
               <ImageUploadField
                 label="Portfolio Image"
                 value={editingPortfolio.image}
@@ -402,6 +541,19 @@ const PortfolioManager: React.FC<Props> = ({
                       : item.description
                     }
                   </p>
+                  {/* Display tags */}
+                  {ensureTagsArray(item.tags).length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {ensureTagsArray(item.tags).map((tag, index) => (
+                        <span 
+                          key={index} 
+                          className="inline-block px-2 py-0.5 bg-gray-100 text-xs text-gray-700 rounded-full"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {item.image && (
                     <img
                       src={item.image}
@@ -457,39 +609,151 @@ const PortfolioManager: React.FC<Props> = ({
         title="Add New Portfolio Item"
       >
         <div className="space-y-4">
-          <input
-            type="text"
-            value={newPortfolioItem.title}
-            onChange={e => setNewPortfolioItem({ ...newPortfolioItem, title: e.target.value })}
-            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-            placeholder="Title"
-          />
-          <input
-            type="text"
-            value={newPortfolioItem.year}
-            onChange={e => setNewPortfolioItem({ ...newPortfolioItem, year: e.target.value })}
-            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-            placeholder="Year"
-          />
-          <select
-            value={newPortfolioItem.category}
-            onChange={e => setNewPortfolioItem({ ...newPortfolioItem, category: e.target.value })}
-            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-          >
-            <option value="" disabled>Select a category</option>
-            {categoryOptions.map(option => (
-              <option key={option} value={option}>
-                {toTitleCase(option)}
-              </option>
-            ))}
-          </select>
-          <textarea
-            value={newPortfolioItem.description}
-            onChange={e => setNewPortfolioItem({ ...newPortfolioItem, description: e.target.value })}
-            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-            rows={4}
-            placeholder="Description"
-          />
+          <div>
+            <label htmlFor="add-title" className="block text-sm font-medium text-charcoal mb-1">Title</label>
+            <input
+              id="add-title"
+              type="text"
+              value={newPortfolioItem.title}
+              onChange={e => setNewPortfolioItem({ ...newPortfolioItem, title: e.target.value })}
+              className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+              placeholder="Title"
+            />
+          </div>
+          <div>
+            <label htmlFor="add-year" className="block text-sm font-medium text-charcoal mb-1">Year</label>
+            <input
+              id="add-year"
+              type="text"
+              value={newPortfolioItem.year}
+              onChange={e => setNewPortfolioItem({ ...newPortfolioItem, year: e.target.value })}
+              className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+              placeholder="Year"
+            />
+          </div>
+          <div>
+            <label htmlFor="add-category" className="block text-sm font-medium text-charcoal mb-1">Category</label>
+            <select
+              id="add-category"
+              value={newPortfolioItem.category}
+              onChange={e => setNewPortfolioItem({ ...newPortfolioItem, category: e.target.value })}
+              className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+            >
+              <option value="" disabled>Select a category</option>
+              {categoryOptions.map(option => (
+                <option key={option} value={option}>
+                  {toTitleCase(option)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="add-description" className="block text-sm font-medium text-charcoal mb-1">Description</label>
+            <textarea
+              id="add-description"
+              value={newPortfolioItem.description}
+              onChange={e => setNewPortfolioItem({ ...newPortfolioItem, description: e.target.value })}
+              className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+              rows={4}
+              placeholder="Description"
+            />
+          </div>
+          <div>
+            <label htmlFor="add-tags" className="block text-sm font-medium text-charcoal mb-1">Tags</label>
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2 mb-2">
+                {ensureTagsArray(newPortfolioItem.tags).map((tag, index) => (
+                  <div key={index} className="flex items-center bg-gray-100 px-3 py-1 rounded-full">
+                    <span className="text-sm text-gray-700">{tag}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentTags = ensureTagsArray(newPortfolioItem.tags);
+                        const newTags = [...currentTags];
+                        newTags.splice(index, 1);
+                        setNewPortfolioItem({ ...newPortfolioItem, tags: newTags });
+                      }}
+                      className="ml-2 text-gray-500 hover:text-red-500"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex">
+                <input
+                  id="add-tags"
+                  type="text"
+                  value={tagInput}
+                  onChange={e => setTagInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && tagInput.trim()) {
+                      e.preventDefault();
+                      const newTag = tagInput.trim();
+                      const currentTags = ensureTagsArray(newPortfolioItem.tags);
+                      if (!currentTags.includes(newTag)) {
+                        setNewPortfolioItem({
+                          ...newPortfolioItem,
+                          tags: [...currentTags, newTag]
+                        });
+                      }
+                      setTagInput('');
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 rounded-l-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  placeholder="Add a tag and press Enter"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (tagInput.trim()) {
+                      const newTag = tagInput.trim();
+                      const currentTags = ensureTagsArray(newPortfolioItem.tags);
+                      if (!currentTags.includes(newTag)) {
+                        setNewPortfolioItem({
+                          ...newPortfolioItem,
+                          tags: [...currentTags, newTag]
+                        });
+                      }
+                      setTagInput('');
+                    }
+                  }}
+                  className="px-4 py-2 bg-gold text-white rounded-r-md hover:bg-gold/90"
+                >
+                  Add
+                </button>
+              </div>
+              
+              {/* Existing tags from other items */}
+              {existingTags.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs text-gray-500 mb-2">Click to add existing tags:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {existingTags
+                      .filter(tag => !ensureTagsArray(newPortfolioItem.tags).includes(tag))
+                      .map((tag, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => {
+                            const currentTags = ensureTagsArray(newPortfolioItem.tags);
+                            setNewPortfolioItem({
+                              ...newPortfolioItem,
+                              tags: [...currentTags, tag]
+                            });
+                          }}
+                          className="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700 hover:bg-gold/10 hover:text-gold"
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              )}
+              
+              <p className="text-xs text-gray-500">Press Enter or click Add to add a tag. Tags help users filter your portfolio items.</p>
+            </div>
+          </div>
           <ImageUploadField
             label="Portfolio Image"
             value={newPortfolioItem.image}
@@ -558,27 +822,39 @@ const PortfolioManager: React.FC<Props> = ({
           <div className="border-t pt-6">
             <h4 className="font-medium mb-4">Add New Timeline Item</h4>
             <div className="space-y-4">
-              <input
-                type="text"
-                value={newTimelineItem.title}
-                onChange={e => setNewTimelineItem({ ...newTimelineItem, title: e.target.value })}
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-                placeholder="Title"
-              />
-              <input
-                type="text"
-                value={newTimelineItem.date}
-                onChange={e => setNewTimelineItem({ ...newTimelineItem, date: e.target.value })}
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-                placeholder="Date"
-              />
-              <textarea
-                value={newTimelineItem.description}
-                onChange={e => setNewTimelineItem({ ...newTimelineItem, description: e.target.value })}
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-                rows={3}
-                placeholder="Description"
-              />
+              <div>
+                <label htmlFor="add-timeline-title" className="block text-sm font-medium text-charcoal mb-1">Title</label>
+                <input
+                  id="add-timeline-title"
+                  type="text"
+                  value={newTimelineItem.title}
+                  onChange={e => setNewTimelineItem({ ...newTimelineItem, title: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  placeholder="Title"
+                />
+              </div>
+              <div>
+                <label htmlFor="add-timeline-date" className="block text-sm font-medium text-charcoal mb-1">Date</label>
+                <input
+                  id="add-timeline-date"
+                  type="text"
+                  value={newTimelineItem.date}
+                  onChange={e => setNewTimelineItem({ ...newTimelineItem, date: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  placeholder="Date"
+                />
+              </div>
+              <div>
+                <label htmlFor="add-timeline-description" className="block text-sm font-medium text-charcoal mb-1">Description</label>
+                <textarea
+                  id="add-timeline-description"
+                  value={newTimelineItem.description}
+                  onChange={e => setNewTimelineItem({ ...newTimelineItem, description: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  rows={3}
+                  placeholder="Description"
+                />
+              </div>
               <ImageUploadField
                 label="Timeline Image"
                 value={newTimelineItem.image}

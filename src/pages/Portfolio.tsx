@@ -17,17 +17,34 @@ interface PortfolioItem {
   category: string;
   description: string;
   image: string;
+  tags?: string[];
 }
 
 const Portfolio = () => {
-  const [activeCategory, setActiveCategory] = useState<'commission' | 'inventory'>('commission');
+  const [activeCategory, setActiveCategory] = useState<'commission' | 'inventory'>('inventory');
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // Helper function to ensure tags are always an array
+  const ensureTagsArray = (tags: any): string[] => {
+    if (!tags) return [];
+    if (Array.isArray(tags)) return tags;
+    try {
+      // If tags is a JSON string, parse it
+      const parsedTags = JSON.parse(tags);
+      return Array.isArray(parsedTags) ? parsedTags : [];
+    } catch (e) {
+      // If parsing fails, return empty array
+      return [];
+    }
+  };
 
   useEffect(() => {
     fetchPortfolioItems();
-  }, [activeCategory]);
+  }, [activeCategory, selectedTags]);
 
   const fetchPortfolioItems = async () => {
     try {
@@ -39,13 +56,47 @@ const Portfolio = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPortfolioItems(data || []);
+      
+      // Filter out items with null or empty images
+      let filteredData = data?.filter(item => item.image && item.image.trim() !== '') || [];
+      
+      // Extract all unique tags for the filter UI
+      const tagSet = new Set<string>();
+      filteredData.forEach(item => {
+        const itemTags = ensureTagsArray(item.tags);
+        itemTags.forEach(tag => tagSet.add(tag));
+      });
+      setAllTags(Array.from(tagSet).sort());
+      
+      // Apply tag filtering if any tags are selected
+      if (selectedTags.length > 0) {
+        filteredData = filteredData.filter(item => {
+          const itemTags = ensureTagsArray(item.tags);
+          return selectedTags.some(tag => itemTags.includes(tag));
+        });
+      }
+      
+      setPortfolioItems(filteredData);
     } catch (err) {
       console.error('Error fetching portfolio items:', err);
       setError('Failed to load portfolio items');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleTagToggle = (tag: string) => {
+    setSelectedTags(prev => {
+      if (prev.includes(tag)) {
+        return prev.filter(t => t !== tag);
+      } else {
+        return [...prev, tag];
+      }
+    });
+  };
+
+  const clearTagFilters = () => {
+    setSelectedTags([]);
   };
 
   return (
@@ -59,7 +110,22 @@ const Portfolio = () => {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Category Tabs */}
-        <div className="grid grid-cols-2 border-b border-gray-200 mb-8">
+        <div className="grid grid-cols-2 border-b border-gray-200 mb-6">
+        <button
+            onClick={() => setActiveCategory('inventory')}
+            className={`relative pb-2 text-lg font-medium transition-colors ${
+              activeCategory === 'inventory' 
+                ? 'text-gold' 
+                : 'text-gray-500 hover:text-gold'
+            }`}
+          >
+            <span className="block text-center">Available Inventory</span>
+            <span 
+              className={`absolute bottom-0 left-0 w-full h-0.5 transition-colors ${
+                activeCategory === 'inventory' ? 'bg-gold' : 'bg-transparent'
+              }`}
+            />
+          </button>
           <button
             onClick={() => setActiveCategory('commission')}
             className={`relative pb-2 text-lg font-medium transition-colors ${
@@ -75,22 +141,37 @@ const Portfolio = () => {
               }`}
             />
           </button>
-          <button
-            onClick={() => setActiveCategory('inventory')}
-            className={`relative pb-2 text-lg font-medium transition-colors ${
-              activeCategory === 'inventory' 
-                ? 'text-gold' 
-                : 'text-gray-500 hover:text-gold'
-            }`}
-          >
-            <span className="block text-center">Inventory</span>
-            <span 
-              className={`absolute bottom-0 left-0 w-full h-0.5 transition-colors ${
-                activeCategory === 'inventory' ? 'bg-gold' : 'bg-transparent'
-              }`}
-            />
-          </button>
         </div>
+        
+        {/* Tag Filters */}
+        {allTags.length > 0 && (
+          <div className="mb-8">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="text-sm font-medium text-gray-700">Filter by tags:</span>
+              {allTags.map(tag => (
+                <button
+                  key={tag}
+                  onClick={() => handleTagToggle(tag)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                    selectedTags.includes(tag)
+                      ? 'bg-gold text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+              {selectedTags.length > 0 && (
+                <button
+                  onClick={clearTagFilters}
+                  className="px-3 py-1 rounded-full text-sm font-medium text-red-400 hover:text-red-800 hover:underline"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         
         {/* Portfolio Grid */}
         {isLoading ? (
