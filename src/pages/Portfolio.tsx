@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import SEO from '../components/SEO';
 
-function toTitleCase(str) {
+function toTitleCase(str: string): string {
   return str.replace(
     /\w\S*/g,
-    text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+    (text: string) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
   );
 }
 
@@ -17,6 +17,7 @@ interface PortfolioItem {
   category: string;
   description: string;
   image: string;
+  price?: number;
   tags?: string[];
 }
 
@@ -225,6 +226,9 @@ const Portfolio = () => {
                 <div className="absolute bottom-0 left-0 right-0 p-6 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
                   <p className="text-sm text-gold mb-2">{toTitleCase(work.category)} • {work.year}</p>
                   <h3 className="text-xl font-medium text-cream mb-2">{work.title}</h3>
+                  {work.price !== undefined && work.price > 0 && (
+                    <p className="text-gold font-medium mb-2">${work.price.toLocaleString()}</p>
+                  )}
                   <p className="text-cream/90 line-clamp-3 text-sm leading-relaxed">{work.description}</p>
                 </div>
               </Link>

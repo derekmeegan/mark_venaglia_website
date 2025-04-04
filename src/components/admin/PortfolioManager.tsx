@@ -20,6 +20,7 @@ interface PortfolioItem {
   category: string;
   description: string;
   image: string;
+  price?: number;
   tags?: string[];
   timeline?: TimelineItem[];
 }
@@ -58,6 +59,7 @@ const PortfolioManager: React.FC<Props> = ({
     category: 'inventory',
     description: '',
     image: '',
+    price: 0,
     tags: []
   });
   const [isMobile, setIsMobile] = useState(false);
@@ -228,6 +230,7 @@ const PortfolioManager: React.FC<Props> = ({
         category: 'inventory',
         description: '',
         image: '',
+        price: 0,
         tags: []
       });
       setShowAddForm(false);
@@ -395,6 +398,19 @@ const PortfolioManager: React.FC<Props> = ({
                   className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
                   rows={4}
                   placeholder="Description"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-price" className="block text-sm font-medium text-charcoal mb-1">Price ($ USD)</label>
+                <input
+                  id="edit-price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={editingPortfolio.price || 0}
+                  onChange={e => setEditingPortfolio({ ...editingPortfolio, price: parseFloat(e.target.value) || 0 })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  placeholder="Price"
                 />
               </div>
               <div>
@@ -655,6 +671,19 @@ const PortfolioManager: React.FC<Props> = ({
               className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
               rows={4}
               placeholder="Description"
+            />
+          </div>
+          <div>
+            <label htmlFor="add-price" className="block text-sm font-medium text-charcoal mb-1">Price ($ USD)</label>
+            <input
+              id="add-price"
+              type="number"
+              min="0"
+              step="0.01"
+              value={newPortfolioItem.price || 0}
+              onChange={e => setNewPortfolioItem({ ...newPortfolioItem, price: parseFloat(e.target.value) || 0 })}
+              className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+              placeholder="Price"
             />
           </div>
           <div>

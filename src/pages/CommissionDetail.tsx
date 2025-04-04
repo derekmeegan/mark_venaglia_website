@@ -21,6 +21,7 @@ interface PortfolioItem {
   category: string;
   description: string;
   image: string;
+  price?: number;
 }
 
 const timelineColors = [
@@ -30,10 +31,10 @@ const timelineColors = [
   'bg-indigo-100',
 ];
 
-function toTitleCase(str) {
+function toTitleCase(str: string): string {
   return str.replace(
     /\w\S*/g,
-    text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+    (text: string) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
   );
 }
 
@@ -140,10 +141,27 @@ const CommissionDetail = () => {
               <p className="text-navy/80">{portfolioItem.year}</p>
               <span className="text-gold">•</span>
               <p className="text-navy/80">{toTitleCase(portfolioItem.category)}</p>
+              {portfolioItem.price !== undefined && portfolioItem.price > 0 && (
+                <>
+                  <span className="text-gold">•</span>
+                  <p className="text-gold font-medium">${portfolioItem.price.toLocaleString()}</p>
+                </>
+              )}
             </div>
-            <p className="text-lg text-charcoal/90">
+            <p className="text-lg text-charcoal/90 mb-6">
               {portfolioItem.description}
             </p>
+            
+            {portfolioItem.price !== undefined && portfolioItem.price > 0 && (
+              <div className="mt-4">
+                <Link 
+                  to="/contact" 
+                  className="inline-flex items-center px-6 py-3 bg-gold text-white rounded-md hover:bg-gold/90 transition-colors"
+                >
+                  Contact for Inquiry
+                </Link>
+              </div>
+            )}
           </div>
           <div>
             <img
