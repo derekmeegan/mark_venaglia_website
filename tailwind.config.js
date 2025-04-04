@@ -8,6 +8,10 @@ export default {
         cream: '#FDF6E3',
         gold: '#f4b305',
       },
+      fontFamily: {
+        'sans': ['Montserrat', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        'serif': ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
+      },
       letterSpacing: {
         'extra': '0.15em',
       },
