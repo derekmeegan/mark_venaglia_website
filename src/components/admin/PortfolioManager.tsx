@@ -337,6 +337,14 @@ const PortfolioManager: React.FC<Props> = ({
 
   return (
     <div className="space-y-6">
+      {/* Add Portfolio Button */}
+      <button
+        onClick={() => setShowAddForm(true)}
+        className="w-full py-3 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gold hover:text-gold"
+      >
+        <Plus className="h-5 w-5 mr-2" />
+        Add New Portfolio Item
+      </button>
       {portfolioItems.map(item => (
         <div key={item.id} className="bg-gray-50 p-6 rounded-lg">
           {editingPortfolio?.id === item.id ? (
@@ -411,7 +419,7 @@ const PortfolioManager: React.FC<Props> = ({
                       </div>
                     ))}
                   </div>
-                  <div className="flex">
+                  <div className="flex w-full max-w-full">
                     <input
                       id="edit-tags"
                       type="text"
@@ -431,8 +439,8 @@ const PortfolioManager: React.FC<Props> = ({
                           setTagInput('');
                         }
                       }}
-                      className="flex-1 px-4 py-2 rounded-l-md border border-gray-300 focus:border-gold focus:ring-gold"
-                      placeholder="Add a tag and press Enter"
+                      className="flex-1 min-w-0 px-4 py-2 rounded-l-md border border-gray-300 focus:border-gold focus:ring-gold text-sm sm:text-base"
+                      placeholder="Add a tag"
                     />
                     <button
                       type="button"
@@ -449,9 +457,9 @@ const PortfolioManager: React.FC<Props> = ({
                           setTagInput('');
                         }
                       }}
-                      className="px-4 py-2 bg-gold text-white rounded-r-md hover:bg-gold/90"
+                      className="px-3 sm:px-4 py-2 bg-gold text-white rounded-r-md hover:bg-gold/90 flex-shrink-0"
                     >
-                      Add
+                      +
                     </button>
                   </div>
                   
@@ -593,15 +601,6 @@ const PortfolioManager: React.FC<Props> = ({
         </div>
       ))}
 
-      {/* Add Portfolio Button */}
-      <button
-        onClick={() => setShowAddForm(true)}
-        className="w-full py-3 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gold hover:text-gold"
-      >
-        <Plus className="h-5 w-5 mr-2" />
-        Add New Portfolio Item
-      </button>
-
       {/* Add Portfolio Modal */}
       <Modal
         isOpen={showAddForm}
@@ -680,7 +679,7 @@ const PortfolioManager: React.FC<Props> = ({
                   </div>
                 ))}
               </div>
-              <div className="flex">
+              <div className="flex w-full max-w-full">
                 <input
                   id="add-tags"
                   type="text"
@@ -700,8 +699,8 @@ const PortfolioManager: React.FC<Props> = ({
                       setTagInput('');
                     }
                   }}
-                  className="flex-1 px-4 py-2 rounded-l-md border border-gray-300 focus:border-gold focus:ring-gold"
-                  placeholder="Add a tag and press Enter"
+                  className="flex-1 min-w-0 px-4 py-2 rounded-l-md border border-gray-300 focus:border-gold focus:ring-gold text-sm sm:text-base"
+                  placeholder="Add a tag"
                 />
                 <button
                   type="button"
@@ -718,9 +717,9 @@ const PortfolioManager: React.FC<Props> = ({
                       setTagInput('');
                     }
                   }}
-                  className="px-4 py-2 bg-gold text-white rounded-r-md hover:bg-gold/90"
+                  className="px-3 sm:px-4 py-2 bg-gold text-white rounded-r-md hover:bg-gold/90 flex-shrink-0"
                 >
-                  Add
+                  +
                 </button>
               </div>
               
@@ -750,8 +749,6 @@ const PortfolioManager: React.FC<Props> = ({
                   </div>
                 </div>
               )}
-              
-              <p className="text-xs text-gray-500">Press Enter or click Add to add a tag. Tags help users filter your portfolio items.</p>
             </div>
           </div>
           <ImageUploadField

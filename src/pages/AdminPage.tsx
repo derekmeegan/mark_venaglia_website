@@ -97,30 +97,30 @@ const AdminPage = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-          <div className="flex justify-center mb-6">
-            <div className="p-3 rounded-full bg-gold/10">
-              <Lock className="h-6 w-6 text-gold" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="bg-white p-8 rounded-xl shadow-xl max-w-md w-full border border-gray-100">
+          <div className="flex justify-center mb-8">
+            <div className="p-4 rounded-full bg-gray-100">
+              <Lock className="h-7 w-7 text-gray-700" />
             </div>
           </div>
-          <h2 className="text-2xl font-serif font-bold text-center text-charcoal mb-6">
+          <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
             Admin Access
           </h2>
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          <form onSubmit={handlePasswordSubmit} className="space-y-5">
             <div>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 text-gray-700"
               />
-              {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+              {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </div>
             <button
               type="submit"
-              className="w-full bg-gold text-white py-2 rounded-md hover:bg-gold/90 transition-colors"
+              className="w-full bg-gray-800 text-white py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium"
             >
               Login
             </button>
@@ -131,30 +131,30 @@ const AdminPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cream p-8">
-      <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-serif font-bold text-charcoal mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+      <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-md p-8 border border-gray-100">
+        <h1 className="text-2xl font-bold text-gray-800 mb-8">
           Content Management
         </h1>
 
         {/* Tab Navigation */}
-        <div className="flex space-x-4 mb-6">
+        <div className="flex space-x-4 mb-8 border-b border-gray-200 pb-2">
           <button
             onClick={() => setActiveTab('tours')}
-            className={`px-4 py-2 rounded-md ${
+            className={`px-6 py-3 rounded-t-lg font-medium transition-colors ${
               activeTab === 'tours'
-                ? 'bg-gold text-white'
-                : 'bg-gray-100 text-charcoal hover:bg-gray-200'
+                ? 'bg-white text-gray-800 border-b-2 border-gray-800'
+                : 'text-gray-500 hover:text-gray-800'
             }`}
           >
             Tours
           </button>
           <button
             onClick={() => setActiveTab('portfolio')}
-            className={`px-4 py-2 rounded-md ${
+            className={`px-6 py-3 rounded-t-lg font-medium transition-colors ${
               activeTab === 'portfolio'
-                ? 'bg-gold text-white'
-                : 'bg-gray-100 text-charcoal hover:bg-gray-200'
+                ? 'bg-white text-gray-800 border-b-2 border-gray-800'
+                : 'text-gray-500 hover:text-gray-800'
             }`}
           >
             Portfolio

@@ -179,6 +179,14 @@ const TourManager: React.FC<Props> = ({
 
   return (
     <div className="space-y-6">
+      {/* Add Tour Button */}
+      <button
+        onClick={() => setShowAddForm(true)}
+        className="w-full py-3 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gold hover:text-gold"
+      >
+        <Plus className="h-5 w-5 mr-2" />
+        Add New Tour
+      </button>
       {tours.map(tour => (
         <div key={tour.id} className="bg-gray-50 p-6 rounded-lg">
           {editingTour?.id === tour.id ? (
@@ -272,15 +280,6 @@ const TourManager: React.FC<Props> = ({
           )}
         </div>
       ))}
-
-      {/* Add Tour Button */}
-      <button
-        onClick={() => setShowAddForm(true)}
-        className="w-full py-3 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gold hover:text-gold"
-      >
-        <Plus className="h-5 w-5 mr-2" />
-        Add New Tour
-      </button>
 
       {/* Add Tour Modal */}
       <Modal
