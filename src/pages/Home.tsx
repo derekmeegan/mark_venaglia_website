@@ -31,7 +31,7 @@ const Home = () => {
         {/* Hero Content */}
         <div className="relative z-10 min-h-screen flex items-center">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center">
-            <h1 className="text-4xl md:text-6xl font-serif font-bold text-cream mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold text-cream mb-6">
               Commission Your Private Manhattan
             </h1>
             <p className="text-xl md:text-2xl text-cream/80 mb-12 max-w-3xl mx-auto">

@@ -201,7 +201,7 @@ const Tours = () => {
           <div className="space-y-8">
             {/* Exclusive Art Experiences Section */}
             <div>
-              <h2 className="text-2xl font-serif font-bold text-gray-900 mb-4">Exclusive Art Experiences</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Exclusive Art Experiences</h2>
               <p className="text-lg text-gray-700 leading-relaxed">
                 Each tour is a carefully crafted journey through New York's rich cultural landscape, combining my decades of experience as both an artist and cultural curator. Whether you're interested in contemporary art, historical landmarks, or the city's hidden artistic gems, I'll create a personalized experience that matches your interests.
               </p>
@@ -246,7 +246,7 @@ const Tours = () => {
 
         {/* Mobile Layout - Only Experiences Section */}
         <div className="lg:hidden mb-12">
-          <h2 className="text-2xl font-serif font-bold text-gray-900 mb-4">Exclusive Art Experiences</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Exclusive Art Experiences</h2>
           <p className="text-lg text-gray-700 leading-relaxed">
             Each tour is a carefully crafted journey through New York's rich cultural landscape, combining my decades of experience as both an artist and cultural curator. Whether you're interested in contemporary art, historical landmarks, or the city's hidden artistic gems, I'll create a personalized experience that matches your interests.
           </p>
@@ -308,7 +308,7 @@ const Tours = () => {
         {/* Reviews Section */}
         <div className="border-t border-gray-200 pt-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-serif font-bold text-gray-900 mb-4">Reflections From Mark's Tours</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Reflections From Mark's Tours</h2>
           </div>
 
           {/* Review Carousel */}

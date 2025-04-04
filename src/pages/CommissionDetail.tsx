@@ -103,7 +103,7 @@ const CommissionDetail = () => {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-serif text-navy mb-4">
+          <h1 className="text-2xl  text-navy mb-4">
             {error || 'Portfolio item not found'}
           </h1>
           <Link 
@@ -133,7 +133,7 @@ const CommissionDetail = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div>
-            <h1 className="text-4xl font-serif font-bold text-navy mb-4">
+            <h1 className="text-4xl font-bold text-navy mb-4">
               {portfolioItem.title}
             </h1>
             <div className="flex items-center gap-4 mb-6">
@@ -192,7 +192,7 @@ const CommissionDetail = () => {
                         <span className="text-sm font-medium text-gold px-3 py-1 bg-gold/10 rounded-full inline-block mb-4">
                           {stage.date}
                         </span>
-                        <h3 className="text-2xl font-serif font-bold text-navy mb-4">
+                        <h3 className="text-2xl font-bold text-navy mb-4">
                           {stage.title}
                         </h3>
                         <p className="text-lg text-charcoal/90 leading-relaxed">

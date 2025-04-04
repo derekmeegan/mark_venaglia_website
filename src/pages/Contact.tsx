@@ -129,7 +129,7 @@ const handleSubmit = async (e: FormEvent): Promise<void> => {
 
             {/* Form Section */}
             <div className="w-full md:w-1/2 p-6">
-              <h1 className="text-2xl font-serif font-bold text-charcoal mb-4">Get in Touch</h1>
+              <h1 className="text-2xl font-bold text-charcoal mb-4">Get in Touch</h1>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -233,7 +233,7 @@ const handleSubmit = async (e: FormEvent): Promise<void> => {
               </button>
               
               <div className="text-center">
-                <h2 className="text-2xl font-serif font-bold text-charcoal mb-4">Thank You!</h2>
+                <h2 className="text-2xl font-bold text-charcoal mb-4">Thank You!</h2>
                 <p className="text-gray-600 mb-6">
                   I appreciate you reaching out. I'll get back to you as soon as possible. In the meantime, feel free to explore more of my work.
                 </p>

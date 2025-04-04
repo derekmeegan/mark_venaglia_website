@@ -27,7 +27,7 @@ const About = () => {
               height={600}
             />
           </div>
-          <h2 className="text-4xl font-serif font-bold text-charcoal mb-8">Meet Mark Venaglia</h2>
+          <h2 className="text-4xl font-bold text-charcoal mb-8">Meet Mark Venaglia</h2>
           <p className="text-lg text-charcoal leading-relaxed mb-6">
             For over four decades, Mark Venaglia has been transforming the way we see and experience New York City through his unique lens as both an accomplished artist and cultural curator.
           </p>
@@ -41,7 +41,7 @@ const About = () => {
           </p>
 
           <div className="border-l-4 border-gold pl-6 my-8">
-            <p className="text-xl font-serif text-charcoal italic">
+            <p className="text-xl  text-charcoal italic">
               "My art and tours are two expressions of the same passion: revealing the soul of New York City through personal, transformative experiences."
             </p>
           </div>
@@ -65,7 +65,7 @@ const About = () => {
                 className="w-full h-[400px] object-cover object-center rounded-lg shadow-lg"
               />
             </div>
-            <h2 className="text-3xl font-serif font-bold text-charcoal mb-6">Commission Your Vision</h2>
+            <h2 className="text-3xl font-bold text-charcoal mb-6">Commission Your Vision</h2>
             <p className="text-lg text-charcoal leading-relaxed mb-6">
               Each commissioned piece is a unique collaboration, bringing together your vision with Mark's distinctive artistic perspective. Whether it's capturing the essence of your favorite New York neighborhood or creating a statement piece for your space, Mark's process ensures a deeply personal and meaningful result.
             </p>

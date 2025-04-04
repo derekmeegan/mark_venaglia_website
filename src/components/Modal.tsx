@@ -35,7 +35,7 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
           >
             <X className="h-6 w-6" />
           </button>
-          <h2 className="text-2xl font-serif font-bold text-charcoal pr-8">{title}</h2>
+          <h2 className="text-2xl font-bold text-charcoal pr-8">{title}</h2>
         </div>
         
         <div className="p-6 overflow-y-auto">

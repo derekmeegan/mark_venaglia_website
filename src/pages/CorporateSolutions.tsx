@@ -82,7 +82,7 @@ const CorporateSolutions = () => {
         {/* Corporate Tours Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
           <div className="space-y-6">
-            <h2 className="text-3xl font-serif font-bold text-charcoal">Corporate Tours</h2>
+            <h2 className="text-3xl font-bold text-charcoal">Corporate Tours</h2>
             <div className="prose prose-lg text-gray-600">
               <p>
                 Transform team building and client entertainment with exclusive, curator-led art experiences. Our corporate tours offer unique perspectives on creativity, innovation, and cultural leadership.
@@ -122,7 +122,7 @@ const CorporateSolutions = () => {
         </div>
 
         {/* Donor Cultivation Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="order-2 lg:order-1 relative h-[500px] rounded-lg overflow-hidden shadow-lg">
             <img
               src="https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/BCG_HighRez%20Tour.jpg"
@@ -131,7 +131,7 @@ const CorporateSolutions = () => {
             />
           </div>
           <div className="order-1 lg:order-2 space-y-6">
-            <h2 className="text-3xl font-serif font-bold text-charcoal">Donor Cultivation</h2>
+            <h2 className="text-3xl font-bold text-charcoal">Donor Cultivation</h2>
             <div className="prose prose-lg text-gray-600">
               <p>
                 Enhance your donor relationships through sophisticated art experiences. Our carefully curated events create meaningful connections between cultural philanthropy and institutional growth.
@@ -166,7 +166,7 @@ const CorporateSolutions = () => {
         {/* Organizations Ticker Section */}
         <div className="mt-24 bg-gray-50 py-16 px-4 rounded-lg">
           <div className="max-w-4xl mx-auto text-center mb-8">
-            <h3 className="text-2xl font-serif font-bold text-charcoal mb-4">
+            <h3 className="text-2xl font-bold text-charcoal mb-4">
               Proven Impact Through Cultural Events
             </h3>
             <p className="text-lg text-gray-600">
