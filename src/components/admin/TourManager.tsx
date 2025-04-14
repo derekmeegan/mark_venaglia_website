@@ -9,6 +9,9 @@ interface Tour {
   duration: string;
   image: string;
   url: string | null;
+  publish: boolean;
+  address: string;
+  description: string;
 }
 
 interface Props {
@@ -34,7 +37,10 @@ const TourManager: React.FC<Props> = ({
     title: '',
     duration: '',
     image: '',
-    url: ''
+    url: '',
+    publish: false,
+    address: '',
+    description: ''
   });
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'tour') => {
@@ -125,7 +131,10 @@ const TourManager: React.FC<Props> = ({
         title: '',
         duration: '',
         image: '',
-        url: ''
+        url: '',
+        publish: false,
+        address: '',
+        description: ''
       });
       setShowAddForm(false);
       onTourAdded();
@@ -203,15 +212,39 @@ const TourManager: React.FC<Props> = ({
                 />
               </div>
               <div>
-                <label htmlFor="edit-tour-duration" className="block text-sm font-medium text-charcoal mb-1">Duration</label>
+                <label htmlFor="edit-tour-address" className="block text-sm font-medium text-charcoal mb-1">Address</label>
                 <input
-                  id="edit-tour-duration"
+                  id="edit-tour-address"
                   type="text"
+                  value={editingTour.address}
+                  onChange={e => setEditingTour({ ...editingTour, address: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  placeholder="Address"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-tour-description" className="block text-sm font-medium text-charcoal mb-1">Description</label>
+                <textarea
+                  id="edit-tour-description"
+                  value={editingTour.description}
+                  onChange={e => setEditingTour({ ...editingTour, description: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  placeholder="Description"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-tour-duration" className="block text-sm font-medium text-charcoal mb-1">Duration</label>
+                <select
+                  id="edit-tour-duration"
                   value={editingTour.duration}
                   onChange={e => setEditingTour({ ...editingTour, duration: e.target.value })}
                   className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-                  placeholder="Duration"
-                />
+                >
+                  <option value="">Select duration</option>
+                  <option value="150">2.5 hours</option>
+                  <option value="240">4 hours</option>
+                </select>
               </div>
               <div>
                 <label htmlFor="edit-tour-url" className="block text-sm font-medium text-charcoal mb-1">Booking URL</label>
@@ -229,6 +262,17 @@ const TourManager: React.FC<Props> = ({
                 value={editingTour.image}
                 onChange={(e) => handleImageUpload(e, 'tour')}
               />
+              <div>
+                <label htmlFor="edit-tour-publish" className="block text-sm font-medium text-charcoal mb-1">Publish</label>
+                <input
+                  id="edit-tour-publish"
+                  type="checkbox"
+                  checked={editingTour.publish}
+                  onChange={e => setEditingTour({ ...editingTour, publish: e.target.checked })}
+                  className="mr-2"
+                />
+                <span className="text-gray-700">Publish this tour</span>
+              </div>
               <div className="flex justify-end space-x-2">
                 <button
                   onClick={() => setEditingTour(null)}
@@ -300,15 +344,39 @@ const TourManager: React.FC<Props> = ({
             />
           </div>
           <div>
-            <label htmlFor="add-tour-duration" className="block text-sm font-medium text-charcoal mb-1">Duration</label>
+            <label htmlFor="add-tour-address" className="block text-sm font-medium text-charcoal mb-1">Address</label>
             <input
-              id="add-tour-duration"
+              id="add-tour-address"
               type="text"
+              value={newTour.address}
+              onChange={e => setNewTour({ ...newTour, address: e.target.value })}
+              className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+              placeholder="Address"
+            />
+          </div>
+          <div>
+            <label htmlFor="add-tour-description" className="block text-sm font-medium text-charcoal mb-1">Description</label>
+            <textarea
+              id="add-tour-description"
+              value={newTour.description}
+              onChange={e => setNewTour({ ...newTour, description: e.target.value })}
+              className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+              placeholder="Description"
+              rows={3}
+            />
+          </div>
+          <div>
+            <label htmlFor="add-tour-duration" className="block text-sm font-medium text-charcoal mb-1">Duration</label>
+            <select
+              id="add-tour-duration"
               value={newTour.duration}
               onChange={e => setNewTour({ ...newTour, duration: e.target.value })}
               className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-              placeholder="Duration"
-            />
+            >
+              <option value="">Select duration</option>
+              <option value="150">2.5 hours</option>
+              <option value="240">4 hours</option>
+            </select>
           </div>
           <div>
             <label htmlFor="add-tour-url" className="block text-sm font-medium text-charcoal mb-1">Booking URL</label>
@@ -326,6 +394,17 @@ const TourManager: React.FC<Props> = ({
             value={newTour.image}
             onChange={(e) => handleImageUpload(e, 'tour')}
           />
+          <div>
+            <label htmlFor="add-tour-publish" className="block text-sm font-medium text-charcoal mb-1">Publish</label>
+            <input
+              id="add-tour-publish"
+              type="checkbox"
+              checked={newTour.publish}
+              onChange={e => setNewTour({ ...newTour, publish: e.target.checked })}
+              className="mr-2"
+            />
+            <span className="text-gray-700">Publish this tour</span>
+          </div>
           <div className="flex justify-end space-x-2 mt-6">
             <button
               onClick={() => setShowAddForm(false)}

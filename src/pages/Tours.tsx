@@ -100,6 +100,7 @@ const Tours = () => {
         const { data, error } = await supabase
           .from('tours')
           .select('*')
+          .eq('publish', true)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -213,11 +214,7 @@ const Tours = () => {
               <ul className="space-y-3">
                 <li className="flex items-start">
                   <ArrowRight className="h-6 w-6 text-gold mr-2 flex-shrink-0" />
-                  <span>Private guided tours of major museums (The Met, MoMA, Guggenheim)</span>
-                </li>
-                <li className="flex items-start">
-                  <ArrowRight className="h-6 w-6 text-gold mr-2 flex-shrink-0" />
-                  <span>Behind-the-scenes access to galleries and artist studios</span>
+                  <span>Private guided tours of major and boutique museums</span>
                 </li>
                 <li className="flex items-start">
                   <ArrowRight className="h-6 w-6 text-gold mr-2 flex-shrink-0" />
@@ -225,7 +222,7 @@ const Tours = () => {
                 </li>
                 <li className="flex items-start">
                   <ArrowRight className="h-6 w-6 text-gold mr-2 flex-shrink-0" />
-                  <span>Optional wine tastings and interactive art experiences</span>
+                  <span>Optional wine and chocolate tastings and interactive art experiences</span>
                 </li>
               </ul>
             </div>
@@ -297,7 +294,12 @@ const Tours = () => {
                 />
                 <div className="p-4 pt-2 flex flex-col flex-1">
                   <h4 className="text-lg font-semibold mb-1">{tour.title}</h4>
-                  <p className="text-gray-600 text-sm mb-1">{tour.duration}</p>
+                  <p className="text-gray-600 text-sm mb-1">
+  {(() => {
+    const hours = Number(tour.duration) / 60;
+    return hours % 1 === 0 ? `${hours} hours` : `${hours.toFixed(1)} hours`;
+  })()}
+</p>
                   <p className="text-gray-700 font-medium">{tour.price}</p>
                 </div>
               </div>
