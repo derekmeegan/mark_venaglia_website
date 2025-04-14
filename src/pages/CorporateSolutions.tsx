@@ -89,15 +89,15 @@ const CorporateSolutions = () => {
               </p>
               <ul className="space-y-4 list-none pl-0 mt-6">
                 <li className="flex items-start">
-                  <Users className="h-6 w-6 text-gold mr-3 flex-shrink-0 mt-1" />
+                  <Users className="h-6 w-6 text-gold mr-3 flex-shrink-0" />
                   <span>Customized team-building experiences through art exploration</span>
                 </li>
-                <li className="flex items-start">
-                  <Building2 className="h-6 w-6 text-gold mr-3 flex-shrink-0 mt-1" />
-                  <span>Private access to premier galleries and museum collections</span>
+                <li className="flex items-start mt-2">
+                  <Building2 className="h-6 w-6 text-gold mr-3 flex-shrink-0" />
+                  <span>Rich architectural and art tours highlighting New York’s cultural landmarks</span>
                 </li>
-                <li className="flex items-start">
-                  <Gem className="h-6 w-6 text-gold mr-3 flex-shrink-0 mt-1" />
+                <li className="flex items-start mt-2">
+                  <Gem className="h-6 w-6 text-gold mr-3 flex-shrink-0" />
                   <span>Expert insights into art market trends and collecting</span>
                 </li>
               </ul>
@@ -122,7 +122,7 @@ const CorporateSolutions = () => {
         </div>
 
         {/* Donor Cultivation Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-20">
           <div className="order-2 lg:order-1 relative h-[500px] rounded-lg overflow-hidden shadow-lg">
             <img
               src="https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/BCG_HighRez%20Tour.jpg"
@@ -134,19 +134,21 @@ const CorporateSolutions = () => {
             <h2 className="text-3xl font-bold text-charcoal">Donor Cultivation</h2>
             <div className="prose prose-lg text-gray-600">
               <p>
-                Enhance your donor relationships through sophisticated art experiences. Our carefully curated events create meaningful connections between cultural philanthropy and institutional growth.
+                Deepen donor relationships and fuel institutional growth with exclusive art experiences led solely by Mr. Venaglia, aka Manhattan Mark. This proven approach significantly increases donations, as experienced by Manhattan organizations.
+                <br /> <br />
+                Move beyond traditional fundraising. References and financial testimonies available upon request.
               </p>
               <ul className="space-y-4 list-none pl-0 mt-6">
                 <li className="flex items-start">
-                  <Users className="h-6 w-6 text-gold mr-3 flex-shrink-0 mt-1" />
-                  <span>Exclusive behind-the-scenes access to major exhibitions</span>
+                  <Users className="h-6 w-6 text-gold mr-3 flex-shrink-0" />
+                  <span>Specially curated corporate art experiences</span>
                 </li>
-                <li className="flex items-start">
-                  <Building2 className="h-6 w-6 text-gold mr-3 flex-shrink-0 mt-1" />
+                <li className="flex items-start mt-2">
+                  <Building2 className="h-6 w-6 text-gold mr-3 flex-shrink-0" />
                   <span>Intimate gatherings with artists and curators</span>
                 </li>
-                <li className="flex items-start">
-                  <Gem className="h-6 w-6 text-gold mr-3 flex-shrink-0 mt-1" />
+                <li className="flex items-start mt-2">
+                  <Gem className="h-6 w-6 text-gold mr-3 flex-shrink-0" />
                   <span>Personalized art acquisition guidance</span>
                 </li>
               </ul>
