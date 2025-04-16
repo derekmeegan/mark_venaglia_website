@@ -26,6 +26,7 @@ interface Tour {
   price: string;
   image: string;
   url: string | null;
+  slug: string | null;
 }
 
 const Tours = () => {
@@ -35,16 +36,6 @@ const Tours = () => {
   const calInitializedRef = useRef<Set<string>>(new Set());
   const navigate = useNavigate();
 
-  // Preload images function
-  const preloadImages = (imageUrls: string[]) => {
-    imageUrls.forEach(url => {
-      if (url) {
-        const img = new Image();
-        img.src = url;
-      }
-    });
-  };
-
   // Initialize Cal.com for each unique namespace found in tours
   useEffect(() => {
     const initializeCalNamespaces = async () => {
@@ -52,15 +43,8 @@ const Tours = () => {
       const namespaces = new Set<string>();
       
       tours.forEach(tour => {
-        if (tour.url) {
-          const match = tour.url.match(/cal\.com\/(.+?)$/);
-          if (match) {
-            const calLink = match[1];
-            const namespace = calLink.split('/')[1]; // Get the second part after the slash
-            if (namespace) {
-              namespaces.add(namespace);
-            }
-          }
+        if (tour.slug) {
+          namespaces.add(tour.slug);
         }
       });
       
@@ -105,12 +89,6 @@ const Tours = () => {
 
         if (error) throw error;
         
-        // Preload tour images as soon as we get the data
-        if (data && data.length > 0) {
-          const imageUrls = data.map(tour => tour.image).filter(Boolean);
-          preloadImages(imageUrls);
-        }
-        
         setTours(data || []);
       } catch (err) {
         console.error('Error fetching tours:', err);
@@ -123,42 +101,25 @@ const Tours = () => {
     fetchTours();
   }, []);
 
-  // This function extracts namespace and link from a Cal.com URL
-  const parseCalUrl = (url: string | null) => {
-    if (!url) return { namespace: null, link: null };
-    
-    const match = url.match(/cal\.com\/(.+?)$/);
-    if (!match) return { namespace: null, link: null };
-    
-    const calLink = match[1];
-    const parts = calLink.split('/');
-    
-    if (parts.length >= 2) {
-      return {
-        namespace: parts[1],
-        link: calLink
-      };
-    }
-    
-    return { namespace: null, link: null };
-  };
 
   const handleTourClick = (tour: Tour) => {
-    if (!tour.url) {
+    if (!tour.slug) {
       navigate('/contact');
       return;
     }
 
     // Parse the Cal.com URL to get the namespace and link
-    const { namespace, link } = parseCalUrl(tour.url);
+    const namespace = tour.slug;
+    // const link = `mark-venaglia/${tour.slug}`;
+    const link = `derek-meegan-31qise/${tour.slug}`;
     
-    if (!namespace || !link) {
+    if (!namespace) {
       navigate('/contact');
       return;
     }
     
     // Log that we're trying to open the calendar
-    console.log(`Attempting to open calendar for namespace: ${namespace}, link: ${link}`);
+    console.log(`Attempting to open calendar for namespace: ${namespace}`);
     
     // Try to manually trigger the Cal API if it's available in the window object
     try {
@@ -295,12 +256,11 @@ const Tours = () => {
                 <div className="p-4 pt-2 flex flex-col flex-1">
                   <h4 className="text-lg font-semibold mb-1">{tour.title}</h4>
                   <p className="text-gray-600 text-sm mb-1">
-  {(() => {
-    const hours = Number(tour.duration) / 60;
-    return hours % 1 === 0 ? `${hours} hours` : `${hours.toFixed(1)} hours`;
-  })()}
-</p>
-                  <p className="text-gray-700 font-medium">{tour.price}</p>
+                    {(() => {
+                      const hours = Number(tour.duration) / 60;
+                      return hours % 1 === 0 ? `${hours} hours` : `${hours.toFixed(1)} hours`;
+                    })()}
+                  </p>
                 </div>
               </div>
             ))

@@ -8,10 +8,10 @@ interface Tour {
   title: string;
   duration: string;
   image: string;
-  url: string | null;
   publish: boolean;
   address: string;
   description: string;
+  price: number;
 }
 
 interface Props {
@@ -37,10 +37,10 @@ const TourManager: React.FC<Props> = ({
     title: '',
     duration: '',
     image: '',
-    url: '',
     publish: false,
     address: '',
-    description: ''
+    description: '',
+    price: 0
   });
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'tour') => {
@@ -131,10 +131,10 @@ const TourManager: React.FC<Props> = ({
         title: '',
         duration: '',
         image: '',
-        url: '',
         publish: false,
         address: '',
-        description: ''
+        description: '',
+        price: 0
       });
       setShowAddForm(false);
       onTourAdded();
@@ -247,14 +247,15 @@ const TourManager: React.FC<Props> = ({
                 </select>
               </div>
               <div>
-                <label htmlFor="edit-tour-url" className="block text-sm font-medium text-charcoal mb-1">Booking URL</label>
+                <label htmlFor="edit-tour-price" className="block text-sm font-medium text-charcoal mb-1">Price</label>
                 <input
-                  id="edit-tour-url"
-                  type="text"
-                  value={editingTour.url || ''}
-                  onChange={e => setEditingTour({ ...editingTour, url: e.target.value })}
+                  id="edit-tour-price"
+                  type="number"
+                  min="0"
+                  value={editingTour.price}
+                  onChange={e => setEditingTour({ ...editingTour, price: Number(e.target.value) })}
                   className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-                  placeholder="Cal.com URL (e.g., https://cal.com/username/event)"
+                  placeholder="Price (e.g., 99)"
                 />
               </div>
               <ImageUploadField
@@ -291,12 +292,7 @@ const TourManager: React.FC<Props> = ({
           ) : (
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <h3 className="text-xl font-semibold">{tour.title}</h3>l
-                {tour.url && (
-                  <p className="text-sm text-gray-500">
-                    Booking URL: {tour.url}
-                  </p>
-                )}
+                <h3 className="text-xl font-semibold">{tour.title}</h3>
                 {tour.image && (
                   <img
                     src={tour.image}
@@ -378,14 +374,15 @@ const TourManager: React.FC<Props> = ({
             </select>
           </div>
           <div>
-            <label htmlFor="add-tour-url" className="block text-sm font-medium text-charcoal mb-1">Booking URL</label>
+            <label htmlFor="add-tour-price" className="block text-sm font-medium text-charcoal mb-1">Price</label>
             <input
-              id="add-tour-url"
-              type="text"
-              value={newTour.url || ''}
-              onChange={e => setNewTour({ ...newTour, url: e.target.value })}
+              id="add-tour-price"
+              type="number"
+              min="0"
+              value={newTour.price}
+              onChange={e => setNewTour({ ...newTour, price: Number(e.target.value) })}
               className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
-              placeholder="Cal.com URL (e.g., https://cal.com/username/event)"
+              placeholder="Price (e.g., 99)"
             />
           </div>
           <ImageUploadField
