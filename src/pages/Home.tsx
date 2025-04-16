@@ -3,13 +3,66 @@ import { Link } from 'react-router-dom';
 import SEO from '../components/SEO';
 import ImageOptimizer from '../components/ImageOptimizer';
 
+import { useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+
 const Home = () => {
+  // Dynamically preload images for Tours and Portfolio
+  useEffect(() => {
+    const preloadImages = (urls: string[]) => {
+      urls.forEach(src => {
+        if (src) {
+          const img = new window.Image();
+          img.src = src;
+        }
+      });
+    };
+
+    const fetchAndPreload = async () => {
+      try {
+        // Fetch published tours
+        const { data: tours, error: toursError } = await supabase
+          .from('tours')
+          .select('image')
+          .eq('publish', true)
+          .order('created_at', { ascending: false });
+        if (toursError) throw toursError;
+        const tourImages = (tours || []).map(t => t.image).filter(Boolean);
+
+        // Fetch portfolio items (all categories)
+        const { data: portfolio, error: portfolioError } = await supabase
+          .from('portfolio')
+          .select('image')
+          .order('created_at', { ascending: false });
+        if (portfolioError) throw portfolioError;
+        const portfolioImages = (portfolio || []).map(p => p.image).filter(Boolean);
+
+        // Fetch all images in the 'ui' folder in the 'mark_images' bucket
+        const { data: uiFiles, error: uiError } = await supabase.storage
+          .from('mark_images')
+          .list('ui', { limit: 100 });
+        if (uiError) throw uiError;
+        const uiImages = (uiFiles?.map(f =>
+          f.name && f.name !== 'SOAR_Venaglia with Eve_interior-02-01.jpeg'
+            ? `https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/${f.name}`
+            : null
+        ) || []).filter(Boolean);
+
+        preloadImages([...tourImages, ...portfolioImages, ...uiImages]);
+      } catch (err) {
+        // Silent fail: don't block home page if preload fails
+        console.error('Preload error:', err);
+      }
+    };
+
+    fetchAndPreload();
+  }, []);
+
   return (
     <div className="relative min-h-screen">
       <SEO 
         title="Mark Venaglia | Artist & Cultural Curator"
         description="Explore New York's art scene with renowned artist and cultural curator offering exclusive art tours and exhibitions."
-        // image="https://images.unsplash.com/photo-1432937202807-b918d6a647ef?fm=jpg&q=80&w=1200&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         image = 'https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/SOAR_Venaglia%20with%20Eve_interior-02.jpeg'
         url="https://markvenaglia.com"
         type="website"
