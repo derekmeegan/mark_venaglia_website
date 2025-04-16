@@ -291,8 +291,7 @@ const TourManager: React.FC<Props> = ({
           ) : (
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <h3 className="text-xl font-semibold">{tour.title}</h3>
-                <p className="text-gray-600">{tour.duration}</p>
+                <h3 className="text-xl font-semibold">{tour.title}</h3>l
                 {tour.url && (
                   <p className="text-sm text-gray-500">
                     Booking URL: {tour.url}
