@@ -87,9 +87,9 @@ const Home = () => {
             <h1 className="text-4xl md:text-6xl font-bold text-cream mb-6">
               Commission Your Private Manhattan
             </h1>
-            <p className="text-xl md:text-2xl text-cream/80 mb-12 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-cream/80 mb-12 max-w-3xl md:max-w-4xl mx-auto">
               Where <span className="text-gold">artistry</span> meets urban exploration—experience{' '}
-              <span className="text-gold">New York</span> through the eyes of an artist and cultural curator.
+              <span className="text-gold">New York</span> through the eyes of an artist and cultural curator, <b>Mark Venaglia</b>.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 max-w-xs sm:max-w-none mx-auto">
               <Link
