@@ -4,7 +4,7 @@ import { ArrowRight, Users, Building2, Gem } from 'lucide-react';
 import SEO from '../components/SEO';
 import ImageOptimizer from '../components/ImageOptimizer';
 
-const organizations = [
+const nonprofit_organizations = [
   'Legal Services New York City',
   "St. Luke's in the Field, Teen Shelter Vulnerability",
   'CallenLorde Community Health Center',
@@ -21,6 +21,22 @@ const organizations = [
   'Los Angeles Museum of Art',
   'All Saints Church',
   "Children's Museum of Los Angeles"
+];
+
+const corporate_organizations = [
+  "JP Morgan Chase",
+  "Morgan Stanley Wealth Management",
+  "Mastercard, Inc.",
+  "Jane Street Capital",
+  "Andrew W. Mellon Foundation",
+  "Citi Global",
+  "Grant Thornton",
+  "BNY Mellon",
+  "Dreyfus",
+  "Pennsylvania Financial Group",
+  "Greenstone",
+  "Alpharma",
+  "Novartis"
 ];
 
 const CorporateSolutions = () => {
@@ -120,6 +136,46 @@ const CorporateSolutions = () => {
             />
           </div>
         </div>
+        {/* Corporate Organizations Ticker Section */}
+        <div className="mt-12 bg-gray-50 py-16 px-4 rounded-lg">
+        <div className="max-w-4xl mx-auto text-center mb-8">
+          <h3 className="text-2xl font-bold text-charcoal mb-4">
+            Reward Your Teams with Unforgettable Cultural Experiences
+          </h3>
+          <p className="text-lg text-gray-600">
+            Mr. Venaglia crafts exclusive cultural programs designed to inspire and reward top talent and senior leadership—enhancing connection, recognition, and retention across organizations such as:
+          </p>
+        </div>
+
+          {/* Ticker Container */}
+          <div 
+            ref={marqueeRef}
+            className={`relative overflow-x-scroll hide-scrollbar select-none cursor-grab ${isDragging ? 'cursor-grabbing' : ''}`}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onMouseMove={handleMouseMove}
+          >
+            <div 
+              className={`inline-flex whitespace-nowrap transition-transform ${
+                !animationPaused ? 'animate-marquee' : ''
+              }`}
+            >
+              {/* Three sets of organizations for seamless looping */}
+              {[...corporate_organizations, ...corporate_organizations, ...corporate_organizations].map((org, index) => (
+                <div
+                  key={index}
+                  className="mx-4 py-2 inline-block"
+                >
+                  <span className="text-lg font-medium text-charcoal/80 transition-colors">
+                    {org}
+                  </span>
+                  <span className="mx-8 text-gold">•</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
         {/* Donor Cultivation Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-20">
@@ -165,8 +221,8 @@ const CorporateSolutions = () => {
           </div>
         </div>
 
-        {/* Organizations Ticker Section */}
-        <div className="mt-24 bg-gray-50 py-16 px-4 rounded-lg">
+        {/* Nonprofit Organizations Ticker Section */}
+        <div className="mt-12 bg-gray-50 py-16 px-4 rounded-lg">
           <div className="max-w-4xl mx-auto text-center mb-8">
             <h3 className="text-2xl font-bold text-charcoal mb-4">
               Proven Impact Through Cultural Events
@@ -191,12 +247,12 @@ const CorporateSolutions = () => {
               }`}
             >
               {/* Three sets of organizations for seamless looping */}
-              {[...organizations, ...organizations, ...organizations].map((org, index) => (
+              {[...nonprofit_organizations, ...nonprofit_organizations, ...nonprofit_organizations].map((org, index) => (
                 <div
                   key={index}
                   className="mx-4 py-2 inline-block"
                 >
-                  <span className="text-lg font-medium text-charcoal/80 hover:text-gold transition-colors">
+                  <span className="text-lg font-medium text-charcoal/80 transition-colors">
                     {org}
                   </span>
                   <span className="mx-8 text-gold">•</span>
