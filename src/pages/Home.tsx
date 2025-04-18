@@ -73,7 +73,7 @@ const Home = () => {
         <div className="absolute inset-0">
           <ImageOptimizer
             src = 'https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/SOAR_Venaglia%20with%20Eve_interior-02-01.jpeg'
-            alt="Statue of Liberty"
+            alt="SOAR Venaglia with Eve interior"
             className="w-full h-full object-cover object-top"
             width={1600}
             height={900}
