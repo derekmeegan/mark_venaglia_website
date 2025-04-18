@@ -110,8 +110,7 @@ const Tours = () => {
 
     // Parse the Cal.com URL to get the namespace and link
     const namespace = tour.slug;
-    // const link = `mark-venaglia/${tour.slug}`;
-    const link = `derek-meegan-31qise/${tour.slug}`;
+    const link = `mark-venaglia/${tour.slug}`;
     
     if (!namespace) {
       navigate('/contact');
