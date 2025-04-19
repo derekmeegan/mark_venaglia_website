@@ -1,95 +1,76 @@
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, Suspense, useCallback } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Link, useNavigate } from 'react-router-dom';
-import ReviewCarousel from '../components/ReviewCarousel';
-import { getCalApi } from "@calcom/embed-react";
+import { getCalApi } from '@calcom/embed-react';
 import ImageOptimizer from '../components/ImageOptimizer';
 import SEO from '../components/SEO';
 
-// Add Cal.com window interface
-declare global {
-  interface Window {
-    Cal?: {
-      showCalendar: () => void;
-      ns?: {
-        [key: string]: any;
-      };
-    };
+// Lazy‑load heavy components so they do not block first paint
+const ReviewCarousel = Suspense
+  ? React.lazy(() => import('../components/ReviewCarousel'))
+  : null;
+
+// ------ Cal.com helper --------------------------------------------------
+
+// Cache per‑namespace Cal instances so the script is requested only once
+const calCache: Record<string, Promise<ReturnType<typeof getCalApi>>> = {};
+
+const openCal = async (slug: string) => {
+  // slug format: "mark-venaglia/<event>"
+  const [namespace] = slug.split('/');
+
+  if (!calCache[namespace]) {
+    calCache[namespace] = getCalApi({ namespace }).then((cal) => {
+      cal('ui', {
+        styles: { branding: { brandColor: '#f4b305' } },
+        hideEventTypeDetails: false,
+        layout: 'month_view',
+      });
+      return cal;
+    });
   }
-}
+
+  try {
+    (await calCache[namespace])('modal', {
+      calLink: slug,
+      config: { layout: 'month_view' },
+    });
+  } catch (err) {
+    // If the embed fails, fallback to Cal.com in a new tab
+    window.open(`https://cal.com/${slug}`, '_blank');
+  }
+};
+
+// ------------------------------------------------------------------------
 
 interface Tour {
   id: string;
   title: string;
   duration: string;
-  price: string;
   image: string;
-  url: string | null;
   slug: string | null;
+  price?: string; // still available from DB if needed later
 }
 
-const Tours = () => {
+const Tours: React.FC = () => {
   const [tours, setTours] = useState<Tour[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const calInitializedRef = useRef<Set<string>>(new Set());
   const navigate = useNavigate();
 
-  // Initialize Cal.com for each unique namespace found in tours
-  useEffect(() => {
-    const initializeCalNamespaces = async () => {
-      // Extract unique namespaces from tour URLs
-      const namespaces = new Set<string>();
-      
-      tours.forEach(tour => {
-        if (tour.slug) {
-          namespaces.add(tour.slug);
-        }
-      });
-      
-      // Initialize Cal for each namespace if not already initialized
-      for (const namespace of namespaces) {
-        if (!calInitializedRef.current.has(namespace)) {
-          try {
-            console.log(`Initializing Cal for namespace: ${namespace}`);
-            const cal = await getCalApi({ namespace });
-            cal("ui", {
-              styles: { 
-                branding: { brandColor: "#f4b305" }
-              },
-              hideEventTypeDetails: false,
-              layout: "month_view"
-            });
-            
-            // Force Cal to preload for this namespace
-            cal("preload", { calLink: "" });
-            
-            calInitializedRef.current.add(namespace);
-          } catch (error) {
-            console.error(`Error initializing Cal for namespace ${namespace}:`, error);
-          }
-        }
-      }
-    };
-    
-    if (tours.length > 0) {
-      initializeCalNamespaces();
-    }
-  }, [tours]);
-
+  // --- Fetch tours -------------------------------------------------------
   useEffect(() => {
     const fetchTours = async () => {
       try {
         const { data, error } = await supabase
           .from('tours')
-          .select('*')
+          .select('id,title,duration,image,slug,price') // fetch only what the UI needs
           .eq('publish', true)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        
-        setTours(data || []);
+        setTours(data ?? []);
       } catch (err) {
         console.error('Error fetching tours:', err);
         setError('Failed to load tours. Please try again later.');
@@ -101,66 +82,34 @@ const Tours = () => {
     fetchTours();
   }, []);
 
+  // --- Handlers ----------------------------------------------------------
+  const handleTourClick = useCallback(
+    (tour: Tour) => {
+      if (!tour.slug) return navigate('/contact');
+      const calSlug = `mark-venaglia/${tour.slug}`;
+      openCal(calSlug);
+    },
+    [navigate]
+  );
 
-  const handleTourClick = (tour: Tour) => {
-    if (!tour.slug) {
-      navigate('/contact');
-      return;
-    }
-
-    // Parse the Cal.com URL to get the namespace and link
-    const namespace = tour.slug;
-    const link = `mark-venaglia/${tour.slug}`;
-    
-    if (!namespace) {
-      navigate('/contact');
-      return;
-    }
-    
-    // Log that we're trying to open the calendar
-    console.log(`Attempting to open calendar for namespace: ${namespace}`);
-    
-    // Try to manually trigger the Cal API if it's available in the window object
-    try {
-      const calNamespace = (window as any).Cal?.ns?.[namespace];
-      if (calNamespace) {
-        console.log("Found Cal namespace, triggering modal");
-        // Use modal instead of inline to prevent button size issues
-        calNamespace("modal", {
-          calLink: link,
-          config: {
-            layout: "month_view"
-          }
-        });
-      } else {
-        console.log("Cal namespace not found, falling back to direct URL");
-        // Fallback to opening the URL directly
-        window.open(`https://cal.com/${link}`, '_blank');
-      }
-    } catch (error) {
-      console.error("Error manually triggering Cal:", error);
-      // Fallback to opening the URL directly
-      window.open(`https://cal.com/${link}`, '_blank');
-    }
-  };
+  // ----------------------------------------------------------------------
 
   return (
     <div className="bg-white">
-      <SEO 
+      <SEO
         title="Art Tours | Mark Venaglia"
         description="Discover exclusive art tours in New York City with Mark Venaglia. Experience the city's vibrant art scene with personalized guided tours."
         image="/mark_tour_pic.webp"
         url="https://markvenaglia.com/tours"
         type="website"
       />
-      
+
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         {/* Desktop Layout - Experience and Highlights */}
         <div className="hidden lg:grid grid-cols-2 gap-12 mb-16">
-          {/* Left Column - Stacked Content */}
+          {/* Left Column */}
           <div className="space-y-8">
-            {/* Exclusive Art Experiences Section */}
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Exclusive Art Experiences</h2>
               <p className="text-lg text-gray-700 leading-relaxed">
@@ -168,7 +117,6 @@ const Tours = () => {
               </p>
             </div>
 
-            {/* Tour Highlights Section */}
             <div className="bg-gray-50 p-6 rounded-lg">
               <h3 className="text-xl font-semibold mb-4">Tour Highlights</h3>
               <ul className="space-y-3">
@@ -188,27 +136,29 @@ const Tours = () => {
             </div>
           </div>
 
-          {/* Right Column - Image */}
+          {/* Right Column Image */}
           <div className="relative h-[475px] rounded-lg overflow-hidden shadow-lg">
             <img
               src="/mark_tour_pic.webp"
               alt="Art Gallery Experience"
               className="absolute inset-0 w-full h-full object-cover object-top"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>
 
-        {/* Mobile Layout - Only Experiences Section */}
+        {/* Mobile Layout */}
         <div className="lg:hidden mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Exclusive Art Experiences</h2>
           <p className="text-lg text-gray-700 leading-relaxed">
             Each tour is a carefully crafted journey through New York's rich cultural landscape, combining my decades of experience as both an artist and cultural curator. Whether you're interested in contemporary art, historical landmarks, or the city's hidden artistic gems, I'll create a personalized experience that matches your interests.
           </p>
         </div>
+
         {/* Tours Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 mb-12">
           {isLoading ? (
-            // Loading skeletons
             [...Array(4)].map((_, index) => (
               <div key={index} className="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
                 <div className="w-full h-48 bg-gray-200" />
@@ -235,12 +185,12 @@ const Tours = () => {
             </div>
           ) : (
             tours.map((tour) => (
-              <div 
-                key={tour.id} 
+              <div
+                key={tour.id}
                 className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer transform transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:border-gold hover:border-2 relative"
                 onClick={() => handleTourClick(tour)}
               >
-                <div className="absolute inset-0 bg-gold opacity-0 hover:opacity-10 transition-opacity duration-300 pointer-events-none"></div>
+                <div className="absolute inset-0 bg-gold opacity-0 hover:opacity-10 transition-opacity duration-300 pointer-events-none" />
                 <ImageOptimizer
                   src={tour.image}
                   alt={tour.title}
@@ -269,8 +219,11 @@ const Tours = () => {
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Reflections From Mark's Tours</h2>
           </div>
 
-          {/* Review Carousel */}
-          <ReviewCarousel />
+          {ReviewCarousel && (
+            <Suspense fallback={<div className="h-52" />}>
+              <ReviewCarousel />
+            </Suspense>
+          )}
 
           {/* Call to Action */}
           <div className="text-center mt-12">
