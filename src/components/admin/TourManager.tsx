@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, CheckCircle, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Modal from '../Modal';
 
@@ -292,15 +292,32 @@ const TourManager: React.FC<Props> = ({
           ) : (
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <h3 className="text-xl font-semibold">{tour.title}</h3>
-                {tour.image && (
-                  <img
-                    src={tour.image}
-                    alt={tour.title}
-                    className="w-48 h-32 object-cover rounded-lg"
-                  />
-                )}
-              </div>
+  <div className="flex items-center space-x-2">
+    <h3 className="text-xl font-semibold">{tour.title}</h3>
+    {tour.publish ? (
+      <span className="relative group">
+        <CheckCircle className="h-5 w-5 text-green-500 cursor-pointer" />
+        <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max px-2 py-1 rounded bg-black text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap">
+          Published
+        </span>
+      </span>
+    ) : (
+      <span className="relative group">
+        <EyeOff className="h-5 w-5 text-gray-400 cursor-pointer" />
+        <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max px-2 py-1 rounded bg-black text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap">
+          Unpublished
+        </span>
+      </span>
+    )}
+  </div>
+  {tour.image && (
+    <img
+      src={tour.image}
+      alt={tour.title}
+      className="w-48 h-32 object-cover rounded-lg"
+    />
+  )}
+</div>
               <div className="flex space-x-2">
                 <button
                   onClick={() => setEditingTour(tour)}
