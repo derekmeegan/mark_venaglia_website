@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Upload, CheckCircle, EyeOff } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, CheckCircle, EyeOff, Calendar } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Modal from '../Modal';
 
@@ -12,6 +12,8 @@ interface Tour {
   address: string;
   description: string;
   price: number;
+  event_id?: string; // Cal.com event ID
+  slug?: string;     // Cal.com event slug
 }
 
 interface Props {
@@ -33,7 +35,7 @@ const TourManager: React.FC<Props> = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [newTour, setNewTour] = useState<Omit<Tour, 'id'>>({
+  const [newTour, setNewTour] = useState<Omit<Tour, 'id' | 'event_id' | 'slug'>>({
     title: '',
     duration: '',
     image: '',
@@ -80,6 +82,17 @@ const TourManager: React.FC<Props> = ({
   const handleSaveTour = async (tour: Tour) => {
     setIsSubmitting(true);
     try {
+      // If the tour has an event_id, update the Cal.com event
+      if (tour.event_id) {
+        await updateCalEvent(tour);
+      } else {
+        // If there's no event_id, create a new Cal.com event
+        const calEvent = await createCalEvent(tour);
+        tour.event_id = calEvent.eventId;
+        tour.slug = calEvent.slug;
+      }
+
+      // Update the tour in Supabase
       const { error } = await supabase
         .from('tours')
         .update(tour)
@@ -87,7 +100,7 @@ const TourManager: React.FC<Props> = ({
 
       if (error) throw error;
 
-      showNotification('Success', 'Tour updated successfully');
+      showNotification('Success', 'Tour and Cal.com event updated successfully');
       setEditingTour(null);
       onTourUpdated();
     } catch (err) {
@@ -98,10 +111,31 @@ const TourManager: React.FC<Props> = ({
     }
   };
 
-  const handleDeleteTour = async (id: string) => {
+  const handleDeleteTour = async (id: string, eventId?: string) => {
     if (!window.confirm('Are you sure you want to delete this tour?')) return;
 
     try {
+      // If there's an associated Cal.com event, delete it first
+      if (eventId) {
+        try {
+          const apiKey = import.meta.env.VITE_CAL_API_KEY;
+          const response = await fetch(`https://api.cal.com/v1/event-types/${eventId}?apiKey=${apiKey}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (!response.ok) {
+            console.warn('Failed to delete Cal.com event, but proceeding with tour deletion');
+          }
+        } catch (err) {
+          console.warn('Error deleting Cal.com event:', err);
+          // Continue with tour deletion even if Cal.com deletion fails
+        }
+      }
+
+      // Delete the tour from Supabase
       const { error } = await supabase
         .from('tours')
         .delete()
@@ -117,16 +151,137 @@ const TourManager: React.FC<Props> = ({
     }
   };
 
+  // Helper function to generate a URL-friendly slug from a string
+  const generateSlug = (text: string): string => {
+    // Convert to lowercase
+    let slug = text.toLowerCase();
+    // Replace spaces and unwanted characters with a hyphen
+    slug = slug.replace(/\s+/g, '-');      // Replace spaces with hyphens
+    slug = slug.replace(/[^\w\-]+/g, ''); // Remove non-alphanumeric characters except hyphens
+    // Remove consecutive hyphens
+    slug = slug.replace(/\-{2,}/g, '-');
+    // Remove leading/trailing hyphens
+    slug = slug.trim().replace(/^\-+|\-+$/g, '');
+    return slug;
+  };
+
+  // Create an event in Cal.com
+  const createCalEvent = async (tour: Omit<Tour, 'id' | 'event_id' | 'slug'>) => {
+    try {
+      const durationMinutes = parseInt(tour.duration);
+      const priceInCents = Math.round(tour.price * 100);
+      const slug = generateSlug(tour.title);
+      
+      const apiKey = import.meta.env.VITE_CAL_API_KEY;
+      const response = await fetch(`https://api.cal.com/v1/event-types?apiKey=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          length: durationMinutes,
+          title: tour.title,
+          slug: slug,
+          description: tour.description,
+          disableGuests: false,
+          minimumBookingNotice: 60*24, // 24 hours in minutes
+          beforeEventBuffer: 120,
+          afterEventBuffer: 120,
+          hideCalendarNotes: true,
+          locations: [
+            {
+              type: "inPerson",
+              address: tour.address,
+            }
+          ],
+          metadata: {
+            apps: {
+              stripe: {
+                enabled: true,
+                price: priceInCents,
+                currency: "usd"
+              }
+            }
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Cal.com API error: ${JSON.stringify(errorData)}`);
+      }
+
+      const data = await response.json();
+      return {
+        eventId: data.event_type.id,
+        slug: data.event_type.slug
+      };
+    } catch (error) {
+      console.error('Error creating Cal.com event:', error);
+      throw error;
+    }
+  };
+
+  // Update an event in Cal.com
+  const updateCalEvent = async (tour: Tour) => {
+    if (!tour.event_id) {
+      throw new Error('Cannot update event: No event_id found');
+    }
+
+    try {
+      const durationMinutes = parseInt(tour.duration);
+      const priceInCents = Math.round(tour.price * 100);
+      
+      const apiKey = import.meta.env.VITE_CAL_API_KEY;
+      const response = await fetch(`https://api.cal.com/v1/event-types/${tour.event_id}?apiKey=${apiKey}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: tour.title,
+          description: tour.description,
+          length: durationMinutes,
+          price: priceInCents,
+          locations: [
+            {
+              type: "inPerson",
+              address: tour.address,
+            }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Cal.com API error: ${JSON.stringify(errorData)}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating Cal.com event:', error);
+      throw error;
+    }
+  };
+
   const handleAddTour = async () => {
     setIsSubmitting(true);
     try {
+      // First, create the event in Cal.com
+      const calEvent = await createCalEvent(newTour);
+      
+      // Then, insert the tour with the event_id and slug into Supabase
       const { error } = await supabase
         .from('tours')
-        .insert([newTour]);
+        .insert([{
+          ...newTour,
+          event_id: calEvent.eventId,
+          slug: calEvent.slug
+        }]);
 
       if (error) throw error;
 
-      showNotification('Success', 'Tour added successfully');
+      showNotification('Success', 'Tour and Cal.com event added successfully');
       setNewTour({
         title: '',
         duration: '',
@@ -309,6 +464,14 @@ const TourManager: React.FC<Props> = ({
         </span>
       </span>
     )}
+    {tour.event_id && (
+      <span className="relative group">
+        <Calendar className="h-5 w-5 text-blue-500 cursor-pointer" />
+        <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max px-2 py-1 rounded bg-black text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap">
+          Cal.com Event Linked
+        </span>
+      </span>
+    )}
   </div>
   {tour.image && (
     <img
@@ -326,7 +489,7 @@ const TourManager: React.FC<Props> = ({
                   <Edit className="h-5 w-5" />
                 </button>
                 <button
-                  onClick={() => handleDeleteTour(tour.id)}
+                  onClick={() => handleDeleteTour(tour.id, tour.event_id)}
                   className="p-2 text-gray-600 hover:text-red-500"
                 >
                   <Trash2 className="h-5 w-5" />
