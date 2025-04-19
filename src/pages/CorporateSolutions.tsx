@@ -129,7 +129,7 @@ const CorporateSolutions = () => {
           </div>
           <div className="relative h-[500px] rounded-lg overflow-hidden shadow-lg">
             <img
-              src="/corporate_tours.jpg"
+              src="/corporate_tours.webp"
               alt="Corporate art tour"
               className="absolute inset-0 w-full h-full object-cover"
             />
@@ -180,7 +180,7 @@ const CorporateSolutions = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-20">
           <div className="order-2 lg:order-1 relative h-[500px] rounded-lg overflow-hidden shadow-lg">
             <img
-              src="/donor_cultivation.jpg"
+              src="/donor_cultivation.webp"
               alt="Donor cultivation event"
               className="absolute inset-0 w-full h-full object-cover"
             />

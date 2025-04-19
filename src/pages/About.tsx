@@ -8,7 +8,7 @@ const About = () => {
       <SEO 
         title="About Mark Venaglia | Artist & Cultural Curator"
         description="Learn about Mark Venaglia, a renowned artist and cultural curator with over four decades of experience transforming how we experience New York City's art scene."
-        image="/mark_meet_me.jpeg"
+        image="/mark_meet_me.webp"
         url="https://markvenaglia.com/about"
         type="website"
       />
@@ -17,11 +17,13 @@ const About = () => {
         <div className="max-w-4xl mx-auto">
           
           <div className="float-right ml-8 mb-4 w-80">
-            <img
-              src="/mark_meet_me.jpeg"
-              alt="Mark Venaglia giving a tour at the MET"
-              className="w-full h-[600px] object-cover rounded-lg shadow-lg"
-            />
+            <picture>
+              <img
+                src="/mark_meet_me.webp"
+                alt="Mark Venaglia giving a tour at the MET"
+                className="w-full h-[600px] object-cover rounded-lg shadow-lg"
+              />
+            </picture>
           </div>
           <h2 className="text-4xl font-bold text-charcoal mb-8">Meet Mark Venaglia</h2>
           <p className="text-lg text-charcoal leading-relaxed mb-6">
@@ -56,7 +58,7 @@ const About = () => {
           <div>
             <div className="float-right ml-8 mb-4 w-80">
               <img
-                src="/lady.jpg"
+                src="/lady.webp"
                 alt="Commission Example"
                 className="w-full h-[400px] object-cover object-center rounded-lg shadow-lg"
               />
