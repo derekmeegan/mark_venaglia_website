@@ -15,6 +15,7 @@ interface FormErrors {
   email?: string;
   subject?: string;
   message?: string;
+  submit?: string;
 }
 
 const Contact = () => {
