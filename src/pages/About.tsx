@@ -1,8 +1,6 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import SEO from '../components/SEO';
-import ImageOptimizer from '../components/ImageOptimizer';
 
 const About = () => {
   return (
@@ -10,7 +8,7 @@ const About = () => {
       <SEO 
         title="About Mark Venaglia | Artist & Cultural Curator"
         description="Learn about Mark Venaglia, a renowned artist and cultural curator with over four decades of experience transforming how we experience New York City's art scene."
-        image="https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/mark_meet_me.jpeg"
+        image="/mark_meet_me.jpeg"
         url="https://markvenaglia.com/about"
         type="website"
       />
@@ -19,12 +17,10 @@ const About = () => {
         <div className="max-w-4xl mx-auto">
           
           <div className="float-right ml-8 mb-4 w-80">
-            <ImageOptimizer
-              src="https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/mark_meet_me.jpeg"
-              alt="Mark Venaglia in his studio"
+            <img
+              src="/mark_meet_me.jpeg"
+              alt="Mark Venaglia giving a tour at the MET"
               className="w-full h-[600px] object-cover rounded-lg shadow-lg"
-              width={320}
-              height={600}
             />
           </div>
           <h2 className="text-4xl font-bold text-charcoal mb-8">Meet Mark Venaglia</h2>
@@ -60,7 +56,7 @@ const About = () => {
           <div>
             <div className="float-right ml-8 mb-4 w-80">
               <img
-                src="https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/lady.jpg"
+                src="/lady.jpg"
                 alt="Commission Example"
                 className="w-full h-[400px] object-cover object-center rounded-lg shadow-lg"
               />

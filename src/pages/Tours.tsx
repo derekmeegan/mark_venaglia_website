@@ -149,7 +149,7 @@ const Tours = () => {
       <SEO 
         title="Art Tours | Mark Venaglia"
         description="Discover exclusive art tours in New York City with Mark Venaglia. Experience the city's vibrant art scene with personalized guided tours."
-        image="https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/mark_tour_pic.png"
+        image="/mark_tour_pic.png"
         url="https://markvenaglia.com/tours"
         type="website"
       />
@@ -190,13 +190,10 @@ const Tours = () => {
 
           {/* Right Column - Image */}
           <div className="relative h-[475px] rounded-lg overflow-hidden shadow-lg">
-            <ImageOptimizer
-              src="https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/mark_tour_pic.png"
+            <img
+              src="/mark_tour_pic.png"
               alt="Art Gallery Experience"
               className="absolute inset-0 w-full h-full object-cover object-top"
-              width={800}
-              height={475}
-              quality={85}
             />
           </div>
         </div>

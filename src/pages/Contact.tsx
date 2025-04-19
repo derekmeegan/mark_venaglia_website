@@ -2,7 +2,6 @@ import React, { useState, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
 import SEO from '../components/SEO';
-import ImageOptimizer from '../components/ImageOptimizer';
 
 interface FormData {
   name: string;
@@ -118,12 +117,10 @@ const handleSubmit = async (e: FormEvent): Promise<void> => {
           <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row">
             {/* Image Section */}
             <div className="w-full md:w-1/2">
-              <ImageOptimizer
-                src="https://images.unsplash.com/photo-1460551882935-745bdcaf8009?fm=jpg&q=60&w=3000&h=2800&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA=="
-                alt="Artist Studio"
+              <img
+                src="/contact.png"
+                alt="Empire State Building"
                 className="w-full h-full object-cover"
-                width={800}
-                height={600}
               />
             </div>
 

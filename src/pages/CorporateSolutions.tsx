@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Users, Building2, Gem } from 'lucide-react';
 import SEO from '../components/SEO';
-import ImageOptimizer from '../components/ImageOptimizer';
 
 const nonprofit_organizations = [
   'Legal Services New York City',
@@ -130,7 +129,7 @@ const CorporateSolutions = () => {
           </div>
           <div className="relative h-[500px] rounded-lg overflow-hidden shadow-lg">
             <img
-              src="https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/11tour29.jpg"
+              src="/corporate_tours.jpg"
               alt="Corporate art tour"
               className="absolute inset-0 w-full h-full object-cover"
             />
@@ -181,7 +180,7 @@ const CorporateSolutions = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-20">
           <div className="order-2 lg:order-1 relative h-[500px] rounded-lg overflow-hidden shadow-lg">
             <img
-              src="https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/BCG_HighRez%20Tour.jpg"
+              src="/donor_cultivation.jpg"
               alt="Donor cultivation event"
               className="absolute inset-0 w-full h-full object-cover"
             />

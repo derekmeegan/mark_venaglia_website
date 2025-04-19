@@ -1,7 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SEO from '../components/SEO';
-import ImageOptimizer from '../components/ImageOptimizer';
 
 import { useEffect } from 'react';
 import { supabase } from '../lib/supabase';
@@ -63,7 +62,7 @@ const Home = () => {
       <SEO 
         title="Mark Venaglia | Artist & Cultural Curator"
         description="Explore New York's art scene with renowned artist and cultural curator offering exclusive art tours and exhibitions."
-        image = 'https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/SOAR_Venaglia%20with%20Eve_interior-02.jpeg'
+        image = '/hero.png'
         url="https://markvenaglia.com"
         type="website"
       />
@@ -71,12 +70,10 @@ const Home = () => {
       {/* Hero Section with Background */}
       <section className="relative min-h-screen">
         <div className="absolute inset-0">
-          <ImageOptimizer
-            src = 'https://dvytdwbpqaupkodiuyom.supabase.co/storage/v1/object/public/mark_images/ui/SOAR_Venaglia%20with%20Eve_interior-02-01.jpeg'
+          <img
+            src = '/hero.png'
             alt="SOAR Venaglia with Eve interior"
             className="w-full h-full object-cover object-top"
-            width={1600}
-            height={900}
           />
           <div className="absolute inset-0 bg-charcoal/50 mix-blend-multiply" />
         </div>
