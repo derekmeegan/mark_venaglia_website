@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { ArrowRight, Instagram, Facebook, Mail, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTiktok } from '@fortawesome/free-brands-svg-icons';
+import { faLinkedin, faTiktok } from '@fortawesome/free-brands-svg-icons';
 import SEO from '../components/SEO';
 import { supabase } from '../lib/supabase';
 
@@ -100,7 +100,7 @@ const Home: React.FC = () => {
             </div>
             
             {/* Social Media Links */}
-            <div className="flex items-center justify-center gap-8 mt-8">
+            <div className="flex items-center justify-center gap-6 mt-8">
               <a
                 href="https://www.facebook.com/mark.venaglia/"
                 className="text-cream hover:text-gold transition-colors"
@@ -121,6 +121,13 @@ const Home: React.FC = () => {
                 aria-label="Tiktok"
               >
                 <FontAwesomeIcon icon={faTiktok} className="h-7 w-7" />
+              </a>
+              <a
+                href="https://www.linkedin.com/in/markvenaglia/"
+                className="text-cream hover:text-gold transition-colors"
+                aria-label="LinkedIn"
+              >
+                <FontAwesomeIcon icon={faLinkedin} className="h-7 w-7" />
               </a>
               <a
                 href="mailto:contact@markvenaglia.com"

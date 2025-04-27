@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram, Facebook, Mail, Phone, ArrowRight } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTiktok } from '@fortawesome/free-brands-svg-icons';
+import { faTiktok, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 
 const Footer = () => {
   return (
@@ -50,6 +50,13 @@ const Footer = () => {
                 aria-label="Tiktok"
               >
                 <FontAwesomeIcon icon={faTiktok} />
+              </a>
+              <a
+                href="https://www.linkedin.com/in/markvenaglia/"
+                className="text-cream/60 hover:text-gold transition-colors"
+                aria-label="LinkedIn"
+              >
+                <FontAwesomeIcon icon={faLinkedin} />
               </a>
               <a
                 href="mailto:contact@markvenaglia.com"
