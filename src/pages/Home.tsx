@@ -100,41 +100,41 @@ const Home: React.FC = () => {
             </div>
             
             {/* Social Media Links */}
-            <div className="flex items-center justify-center gap-6 mt-8">
+            <div className="flex items-center justify-center gap-8 mt-8">
               <a
                 href="https://www.facebook.com/mark.venaglia/"
                 className="text-cream hover:text-gold transition-colors"
                 aria-label="Facebook"
               >
-                <Facebook className="h-5 w-5" />
+                <Facebook className="h-7 w-7" />
               </a>
               <a
                 href="https://www.instagram.com/markvenaglia/?hl=en"
                 className="text-cream hover:text-gold transition-colors"
                 aria-label="Instagram"
               >
-                <Instagram className="h-5 w-5" />
+                <Instagram className="h-7 w-7" />
               </a>
               <a
                 href="https://www.tiktok.com/@markvenaglia"
                 className="text-cream hover:text-gold transition-colors"
                 aria-label="Tiktok"
               >
-                <FontAwesomeIcon icon={faTiktok} />
+                <FontAwesomeIcon icon={faTiktok} className="h-7 w-7" />
               </a>
               <a
                 href="mailto:contact@markvenaglia.com"
                 className="text-cream hover:text-gold transition-colors"
                 aria-label="Email"
               >
-                <Mail className="h-5 w-5" />
+                <Mail className="h-7 w-7" />
               </a>
               <a
                 href="tel:+19179957223"
                 className="text-cream hover:text-gold transition-colors"
                 aria-label="Phone"
               >
-                <Phone className="h-5 w-5" />
+                <Phone className="h-7 w-7" />
               </a>
             </div>
           </div>
