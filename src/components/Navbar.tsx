@@ -107,17 +107,13 @@ const Navbar = () => {
           <div className="flex flex-col h-full">
             {/* Mobile Header */}
             <div className="flex justify-between items-start px-4 pt-4">
-              <Link
-                  to="/"
-                  className="flex-shrink-0 z-50"
-                  onClick={closeMenu}
-                >
-                  <Logo />
-              </Link>
+              <div className="flex-shrink-0 z-50" onClick={closeMenu}>
+                <Logo />
+              </div>
               {/* Close button with larger clickable area */}
               <div className="p-4 cursor-pointer mt-2 z-50" onClick={closeMenu}>
                 <div className={`flex items-center justify-center w-12 h-12 rounded-full ${
-                  isHomePage ? 'text-cream bg-charcoal/50' : 'text-charcoal bg-gray-100'
+                  isHomePage ? 'text-cream' : 'text-charcoal'
                 } hover:text-gold`}>
                   <X className="h-8 w-8" />
                 </div>
