@@ -189,6 +189,15 @@ const Tours: React.FC = () => {
                 key={tour.id}
                 className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer transform transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:border-gold hover:border-2 relative"
                 onClick={() => handleTourClick(tour)}
+                onTouchStart={() => {}}
+                role="button"
+                tabIndex={0}
+                aria-label={`Book ${tour.title} tour`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleTourClick(tour);
+                  }
+                }}
               >
                 <div className="absolute inset-0 bg-gold opacity-0 hover:opacity-10 transition-opacity duration-300 pointer-events-none" />
                 <ImageOptimizer
