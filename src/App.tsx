@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -11,6 +11,7 @@ const Tours = lazy(() => import('./pages/Tours'));
 const CorporateSolutions = lazy(() => import('./pages/CorporateSolutions'));
 const Contact = lazy(() => import('./pages/Contact'));
 const CommissionDetail = lazy(() => import('./pages/CommissionDetail'));
+const Resume = lazy(() => import('./pages/Resume'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
@@ -40,6 +41,7 @@ function App() {
             <Route path="/tours" element={<Tours />} />
             <Route path="/corporate-solutions" element={<CorporateSolutions />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/resume" element={<Resume />} />
             <Route path="/markspage" element={<AdminPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -48,9 +48,16 @@ const About = () => {
             Today, Mark continues to create commissioned artworks while leading exclusive tours for clients ranging from individual art enthusiasts to major cultural institutions. His unique perspective on the city's artistic landscape has made him a sought-after guide for those seeking to discover New York's cultural essence.
           </p>
 
-          <p className="text-lg text-charcoal leading-relaxed">
+          <p className="text-lg text-charcoal leading-relaxed mb-6">
             Through his work, Mark strives to capture not just the visual elements of the city, but its spirit and energy. Each piece and every tour is an opportunity to share his deep appreciation for New York's artistic heritage and its continuing evolution as a cultural hub.
           </p>
+          <Link
+              to="/resume"
+              className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-gold hover:bg-gold/90 transition-colors"
+            >
+              View Mark's Resume
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
         </div>
 
         {/* Commission Section */}
