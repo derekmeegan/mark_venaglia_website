@@ -1,38 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Lock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import Modal from '../components/Modal';
 import TourManager from '../components/admin/TourManager';
 import PortfolioManager from '../components/admin/PortfolioManager';
+import ResumeManager from '../components/admin/ResumeManager';
 
-interface Tour {
-  id: string;
-  title: string;
-  duration: string;
-  image: string;
-}
-
-interface PortfolioItem {
-  id: string;
-  title: string;
-  year: string;
-  category: string;
-  description: string;
-  image: string;
-}
-
-interface NotificationModal {
-  show: boolean;
-  title: string;
-  message: string;
-}
+import { PortfolioItem, NotificationModal, AdminTab } from '../types/admin';
 
 const AdminPage = () => {
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tours' | 'portfolio'>('tours');
+  const [activeTab, setActiveTab] = useState<AdminTab>('tours');
   const [error, setError] = useState('');
-  const [tours, setTours] = useState<Tour[]>([]);
+  // Use type from the types/admin.ts file
+  const [tours, setTours] = useState<any[]>([]);
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [notification, setNotification] = useState<NotificationModal>({
     show: false,
@@ -131,19 +113,18 @@ const AdminPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
-      <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-md p-8 border border-gray-100">
-        <h1 className="text-2xl font-bold text-gray-800 mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8 md:p-12 lg:p-20">
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">
           Content Management
         </h1>
 
         {/* Tab Navigation */}
-        <div className="flex space-x-4 mb-8 border-b border-gray-200 pb-2">
+        <div className="flex flex-wrap space-x-2 mb-8 border-b border-gray-200 pb-2">
           <button
             onClick={() => setActiveTab('tours')}
-            className={`px-6 py-3 rounded-t-lg font-medium transition-colors ${
+            className={`px-4 py-3 rounded-t-lg font-medium transition-colors ${
               activeTab === 'tours'
-                ? 'bg-white text-gray-800 border-b-2 border-gray-800'
+                ? 'text-gray-800 border-b-2 border-gray-800'
                 : 'text-gray-500 hover:text-gray-800'
             }`}
           >
@@ -151,18 +132,28 @@ const AdminPage = () => {
           </button>
           <button
             onClick={() => setActiveTab('portfolio')}
-            className={`px-6 py-3 rounded-t-lg font-medium transition-colors ${
+            className={`px-4 py-3 rounded-t-lg font-medium transition-colors ${
               activeTab === 'portfolio'
-                ? 'bg-white text-gray-800 border-b-2 border-gray-800'
+                ? 'text-gray-800 border-b-2 border-gray-800'
                 : 'text-gray-500 hover:text-gray-800'
             }`}
           >
             Portfolio
           </button>
+          <button
+            onClick={() => setActiveTab('resume')}
+            className={`px-4 py-3 rounded-t-lg font-medium transition-colors ${
+              activeTab === 'resume'
+                ? 'text-gray-800 border-b-2 border-gray-800'
+                : 'text-gray-500 hover:text-gray-800'
+            }`}
+          >
+            Resume
+          </button>
         </div>
 
         {/* Content Managers */}
-        {activeTab === 'tours' ? (
+        {activeTab === 'tours' && (
           <TourManager
             tours={tours}
             onTourAdded={fetchTours}
@@ -170,13 +161,22 @@ const AdminPage = () => {
             onTourDeleted={fetchTours}
             showNotification={showNotification}
           />
-        ) : (
+        )}
+        
+        {activeTab === 'portfolio' && (
           <PortfolioManager
             portfolioItems={portfolioItems}
             onPortfolioItemAdded={fetchPortfolioItems}
             onPortfolioItemUpdated={fetchPortfolioItems}
             onPortfolioItemDeleted={fetchPortfolioItems}
             showNotification={showNotification}
+          />
+        )}
+        
+        {activeTab === 'resume' && (
+          <ResumeManager
+            showNotification={showNotification}
+            onDataChanged={() => {}}
           />
         )}
 
@@ -194,7 +194,7 @@ const AdminPage = () => {
             Close
           </button>
         </Modal>
-      </div> </div>
+      </div>
   );
 };
 

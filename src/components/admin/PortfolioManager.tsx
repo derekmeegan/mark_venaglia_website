@@ -531,7 +531,7 @@ const PortfolioManager: React.FC<Props> = ({
           ) : (
             <div className="flex flex-col">
               {/* Action buttons - shown above on mobile, to the right on desktop */}
-              <div className={`${isMobile ? 'mb-3' : 'hidden'} flex space-x-2`}>
+              <div className={`${isMobile ? 'mb-3' : 'hidden'} flex justify-between items-center`}>
                 <button
                   onClick={() => {
                     setSelectedPortfolioId(item.id);
@@ -541,18 +541,22 @@ const PortfolioManager: React.FC<Props> = ({
                 >
                   Timeline
                 </button>
-                <button
-                  onClick={() => setEditingPortfolio(item)}
-                  className="p-2 text-gray-600 hover:text-gold"
-                >
-                  <Edit className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => handleDeletePortfolio(item.id)}
-                  className="p-2 text-gray-600 hover:text-red-500"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setEditingPortfolio(item)}
+                    className="text-gray-600 hover:text-gray-900"
+                    aria-label="Edit portfolio item"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeletePortfolio(item.id)}
+                    className="text-gray-600 hover:text-gray-900"
+                    aria-label="Delete portfolio item"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
               
               <div className="flex items-start justify-between">
@@ -588,7 +592,7 @@ const PortfolioManager: React.FC<Props> = ({
                 </div>
                 
                 {/* Action buttons for desktop view */}
-                <div className={`${isMobile ? 'hidden' : 'flex'} space-x-2`}>
+                <div className={`${isMobile ? 'hidden' : 'flex'} space-x-2 justify-end w-full`}>
                   <button
                     onClick={() => {
                       setSelectedPortfolioId(item.id);
@@ -598,18 +602,22 @@ const PortfolioManager: React.FC<Props> = ({
                   >
                     Timeline
                   </button>
-                  <button
-                    onClick={() => setEditingPortfolio(item)}
-                    className="p-2 text-gray-600 hover:text-gold"
-                  >
-                    <Edit className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDeletePortfolio(item.id)}
-                    className="p-2 text-gray-600 hover:text-red-500"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setEditingPortfolio(item)}
+                      className="text-gray-600 hover:text-gray-900"
+                      aria-label="Edit portfolio item"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeletePortfolio(item.id)}
+                      className="text-gray-600 hover:text-gray-900"
+                      aria-label="Delete portfolio item"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -831,13 +839,14 @@ const PortfolioManager: React.FC<Props> = ({
                     />
                   )}
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 justify-end">
                 
                   <button
                     onClick={() => handleDeleteTimelineItem(item.id)}
-                    className="p-2 text-gray-600 hover:text-red-500"
+                    className="text-gray-600 hover:text-gray-900"
+                    aria-label="Delete timeline item"
                   >
-                    <Trash2 className="h-5 w-5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>

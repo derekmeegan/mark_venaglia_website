@@ -481,18 +481,20 @@ const TourManager: React.FC<Props> = ({
     />
   )}
 </div>
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 justify-end">
                 <button
                   onClick={() => setEditingTour(tour)}
-                  className="p-2 text-gray-600 hover:text-gold"
+                  className="text-gray-600 hover:text-gray-900"
+                  aria-label="Edit tour"
                 >
-                  <Edit className="h-5 w-5" />
+                  <Edit className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleDeleteTour(tour.id, tour.event_id)}
-                  className="p-2 text-gray-600 hover:text-red-500"
+                  className="text-gray-600 hover:text-gray-900"
+                  aria-label="Delete tour"
                 >
-                  <Trash2 className="h-5 w-5" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
