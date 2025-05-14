@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { ArrowRight, Instagram, Facebook, Mail, Phone } from 'lucide-react';
+import { ArrowRight, Instagram } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLinkedin, faTiktok } from '@fortawesome/free-brands-svg-icons';
+import { faLinkedin, faTiktok, faFacebookF } from '@fortawesome/free-brands-svg-icons';
+import { faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import SEO from '../components/SEO';
 import { supabase } from '../lib/supabase';
 
@@ -106,14 +107,14 @@ const Home: React.FC = () => {
                 className="text-cream hover:text-gold transition-colors"
                 aria-label="Facebook"
               >
-                <Facebook className="h-7 w-7" />
+                <FontAwesomeIcon icon={faFacebookF} className="h-7 w-7" />
               </a>
               <a
                 href="https://www.instagram.com/markvenaglia/?hl=en"
                 className="text-cream hover:text-gold transition-colors"
                 aria-label="Instagram"
               >
-                <Instagram className="h-7 w-7" />
+                <Instagram className="h-[2em] w-[2em]" />
               </a>
               <a
                 href="https://www.tiktok.com/@markvenaglia"
@@ -134,14 +135,14 @@ const Home: React.FC = () => {
                 className="text-cream hover:text-gold transition-colors"
                 aria-label="Email"
               >
-                <Mail className="h-7 w-7" />
+                <FontAwesomeIcon icon={faEnvelope} className="h-7 w-7" />
               </a>
               <a
                 href="tel:+19179957223"
                 className="text-cream hover:text-gold transition-colors"
                 aria-label="Phone"
               >
-                <Phone className="h-7 w-7" />
+                <FontAwesomeIcon icon={faPhone} className="h-6 w-6" />
               </a>
             </div>
           </div>

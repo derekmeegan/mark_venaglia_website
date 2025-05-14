@@ -2,7 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram, Facebook, Mail, Phone, ArrowRight } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTiktok, faLinkedin } from '@fortawesome/free-brands-svg-icons';
+import { faLinkedin, faTiktok, faFacebookF } from '@fortawesome/free-brands-svg-icons';
+import { faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 
 const Footer = () => {
   return (
@@ -35,7 +36,7 @@ const Footer = () => {
                 className="text-cream/60 hover:text-gold transition-colors"
                 aria-label="Facebook"
               >
-                <Facebook className="h-5 w-5" />
+                <FontAwesomeIcon icon={faFacebookF} className="h-4 w-4" />
               </a>
               <a
                 href="https://www.instagram.com/markvenaglia/?hl=en"
@@ -49,28 +50,28 @@ const Footer = () => {
                 className="text-cream/60 hover:text-gold transition-colors"
                 aria-label="Tiktok"
               >
-                <FontAwesomeIcon icon={faTiktok} />
+                <FontAwesomeIcon icon={faTiktok}className="h-4 w-4" />
               </a>
               <a
                 href="https://www.linkedin.com/in/markvenaglia/"
                 className="text-cream/60 hover:text-gold transition-colors"
                 aria-label="LinkedIn"
               >
-                <FontAwesomeIcon icon={faLinkedin} />
+                <FontAwesomeIcon icon={faLinkedin} className="h-4 w-4"/>
               </a>
               <a
                 href="mailto:contact@markvenaglia.com"
                 className="text-cream/60 hover:text-gold transition-colors"
                 aria-label="Email"
               >
-                <Mail className="h-5 w-5" />
+                <FontAwesomeIcon icon={faEnvelope} className="h-4 w-4" />
               </a>
               <a
                 href="tel:+19179957223"
                 className="text-cream/60 hover:text-gold transition-colors"
                 aria-label="Phone"
               >
-                <Phone className="h-5 w-5" />
+                <FontAwesomeIcon icon={faPhone} className="h-4 w-4" />
               </a>
             </div>
           </div>
