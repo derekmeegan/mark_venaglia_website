@@ -22,6 +22,7 @@ const ReviewCarousel = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [currentReview, setCurrentReview] = useState<Review | null>(null);
+  const [isTextExpanded, setIsTextExpanded] = useState(false);
 
   useEffect(() => {
     fetchReviews();
@@ -30,8 +31,9 @@ const ReviewCarousel = () => {
   useEffect(() => {
     if (reviews.length > 0) {
       setCurrentReview(reviews[currentIndex]);
+      setIsTextExpanded(false); // Reset expanded state when review changes
     }
-  }, [reviews]);
+  }, [reviews, currentIndex]);
 
   const fetchReviews = async () => {
     try {
@@ -166,7 +168,11 @@ const ReviewCarousel = () => {
           )}
 
           {/* Review Text */}
-          <p className="text-gray-600 mb-6 line-clamp-4">
+          <p 
+            className={`text-gray-600 mb-6 ${isTextExpanded ? '' : 'line-clamp-4'} cursor-pointer transition-all duration-300`}
+            onClick={() => setIsTextExpanded(!isTextExpanded)}
+            title={isTextExpanded ? "Click to collapse" : "Click to expand"}
+          >
             {currentReview.review_text}
           </p>
 
