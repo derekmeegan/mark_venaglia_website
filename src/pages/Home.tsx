@@ -78,7 +78,7 @@ const Home: React.FC = () => {
         <div className="relative z-10 min-h-screen flex items-center">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-cream mb-6">Commission Your Private Manhattan</h1>
-            <p className="text-xl md:text-2xl text-cream/80 mb-12 max-w-3xl md:max-w-4xl mx-auto">
+            <p className="text-xl md:text-2xl text-cream mb-12 max-w-3xl md:max-w-4xl mx-auto font-medium">
               Where <span className="text-gold">artistry</span> meets urban exploration—experience <span className="text-gold">New York</span> through the eyes of an artist and cultural curator, <b>Mark Venaglia</b>.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 max-w-xs sm:max-w-none mx-auto">

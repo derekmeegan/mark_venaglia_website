@@ -6,9 +6,12 @@ export interface Tour {
   publish?: boolean;
   address?: string;
   description?: string;
-  price?: string;
+  price?: number;
   event_id?: string;
   slug?: string;
+  location?: string;
+  category?: string;
+  tags?: string[];
 }
 
 export interface PortfolioItem {

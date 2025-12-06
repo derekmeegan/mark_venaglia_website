@@ -14,6 +14,9 @@ interface Tour {
   price: number;
   event_id?: string; // Cal.com event ID
   slug?: string;     // Cal.com event slug
+  location: string;
+  category: string;
+  tags: string[];
 }
 
 interface Props {
@@ -42,8 +45,12 @@ const TourManager: React.FC<Props> = ({
     publish: false,
     address: '',
     description: '',
-    price: 0
+    price: 0,
+    location: '',
+    category: '',
+    tags: []
   });
+  const [newTagInput, setNewTagInput] = useState('');
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'tour') => {
     const file = e.target.files?.[0];
@@ -231,7 +238,7 @@ const TourManager: React.FC<Props> = ({
     try {
       const durationMinutes = parseInt(tour.duration);
       const priceInCents = Math.round(tour.price * 100);
-      
+
       const apiKey = import.meta.env.VITE_CAL_API_KEY;
       const response = await fetch(`https://api.cal.com/v1/event-types/${tour.event_id}?apiKey=${apiKey}`, {
         method: 'PATCH',
@@ -242,13 +249,21 @@ const TourManager: React.FC<Props> = ({
           title: tour.title,
           description: tour.description,
           length: durationMinutes,
-          price: priceInCents,
           locations: [
             {
               type: "inPerson",
               address: tour.address,
             }
-          ]
+          ],
+          metadata: {
+            apps: {
+              stripe: {
+                enabled: true,
+                price: priceInCents,
+                currency: "usd"
+              }
+            }
+          }
         })
       });
 
@@ -289,8 +304,12 @@ const TourManager: React.FC<Props> = ({
         publish: false,
         address: '',
         description: '',
-        price: 0
+        price: 0,
+        location: '',
+        category: '',
+        tags: []
       });
+      setNewTagInput('');
       setShowAddForm(false);
       onTourAdded();
     } catch (err) {
@@ -418,6 +437,77 @@ const TourManager: React.FC<Props> = ({
                 value={editingTour.image}
                 onChange={(e) => handleImageUpload(e, 'tour')}
               />
+              <div>
+                <label htmlFor="edit-tour-location" className="block text-sm font-medium text-charcoal mb-1">Location (Display Name)</label>
+                <input
+                  id="edit-tour-location"
+                  type="text"
+                  value={editingTour.location}
+                  onChange={e => setEditingTour({ ...editingTour, location: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                  placeholder="e.g., Upper East Side, Central Park"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-tour-category" className="block text-sm font-medium text-charcoal mb-1">Category</label>
+                <select
+                  id="edit-tour-category"
+                  value={editingTour.category}
+                  onChange={e => setEditingTour({ ...editingTour, category: e.target.value })}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                >
+                  <option value="">Select category</option>
+                  <option value="museum">Museum Tours</option>
+                  <option value="walking">Walking Tours</option>
+                  <option value="special">Experiences</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-charcoal mb-1">Tags</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {editingTour.tags.map((tag, index) => (
+                    <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-sm bg-gold/10 text-gold border border-gold">
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => setEditingTour({ ...editingTour, tags: editingTour.tags.filter((_, i) => i !== index) })}
+                        className="ml-1 text-gold hover:text-gold/70"
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newTagInput}
+                    onChange={e => setNewTagInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && newTagInput.trim()) {
+                        e.preventDefault();
+                        setEditingTour({ ...editingTour, tags: [...editingTour.tags, newTagInput.trim()] });
+                        setNewTagInput('');
+                      }
+                    }}
+                    className="flex-1 px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                    placeholder="Add a tag (press Enter)"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newTagInput.trim()) {
+                        setEditingTour({ ...editingTour, tags: [...editingTour.tags, newTagInput.trim()] });
+                        setNewTagInput('');
+                      }
+                    }}
+                    className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  >
+                    Add
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Suggested: Art History, Indoors, Outdoors, Family Friendly, Architectural Focus, Walking Tour</p>
+              </div>
               <div>
                 <label htmlFor="edit-tour-publish" className="block text-sm font-medium text-charcoal mb-1">Publish</label>
                 <input
@@ -572,6 +662,77 @@ const TourManager: React.FC<Props> = ({
             value={newTour.image}
             onChange={(e) => handleImageUpload(e, 'tour')}
           />
+          <div>
+            <label htmlFor="add-tour-location" className="block text-sm font-medium text-charcoal mb-1">Location (Display Name)</label>
+            <input
+              id="add-tour-location"
+              type="text"
+              value={newTour.location}
+              onChange={e => setNewTour({ ...newTour, location: e.target.value })}
+              className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+              placeholder="e.g., Upper East Side, Central Park"
+            />
+          </div>
+          <div>
+            <label htmlFor="add-tour-category" className="block text-sm font-medium text-charcoal mb-1">Category</label>
+            <select
+              id="add-tour-category"
+              value={newTour.category}
+              onChange={e => setNewTour({ ...newTour, category: e.target.value })}
+              className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+            >
+              <option value="">Select category</option>
+              <option value="museum">Museum Tours</option>
+              <option value="walking">Walking Tours</option>
+              <option value="special">Experiences</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-charcoal mb-1">Tags</label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {newTour.tags.map((tag, index) => (
+                <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-sm bg-gold/10 text-gold border border-gold">
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => setNewTour({ ...newTour, tags: newTour.tags.filter((_, i) => i !== index) })}
+                    className="ml-1 text-gold hover:text-gold/70"
+                  >
+                    &times;
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newTagInput}
+                onChange={e => setNewTagInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && newTagInput.trim()) {
+                    e.preventDefault();
+                    setNewTour({ ...newTour, tags: [...newTour.tags, newTagInput.trim()] });
+                    setNewTagInput('');
+                  }
+                }}
+                className="flex-1 px-4 py-2 rounded-md border border-gray-300 focus:border-gold focus:ring-gold"
+                placeholder="Add a tag (press Enter)"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (newTagInput.trim()) {
+                    setNewTour({ ...newTour, tags: [...newTour.tags, newTagInput.trim()] });
+                    setNewTagInput('');
+                  }
+                }}
+                className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300"
+              >
+                Add
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Suggested: Art History, Indoors, Outdoors, Family Friendly, Architectural Focus, Walking Tour</p>
+          </div>
           <div>
             <label htmlFor="add-tour-publish" className="block text-sm font-medium text-charcoal mb-1">Publish</label>
             <input
