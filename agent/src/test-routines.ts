@@ -143,6 +143,23 @@ export interface LinkValidationRoutine {
 // Code Generator - Converts routines to Playwright code
 // ============================================
 
+/**
+ * Helper to build URL with Vercel bypass secret if available
+ */
+function getUrlHelper(): string {
+  return `
+// Helper to build URL with Vercel bypass secret
+function buildUrl(baseUrl: string, path: string = ''): string {
+  const url = baseUrl + path;
+  if (params.bypassSecret) {
+    const separator = url.includes('?') ? '&' : '?';
+    return url + separator + 'x-vercel-protection-bypass=' + params.bypassSecret;
+  }
+  return url;
+}
+`;
+}
+
 export function routineToCode(routine: TestRoutine, path: string): string {
   switch (routine.routine) {
     case 'performance':
@@ -172,12 +189,13 @@ function generatePerformanceCode(routine: PerformanceRoutine, path: string): str
   const maxLoad = routine.config?.maxLoadTime || 3000;
 
   return `
+${getUrlHelper()}
 // Performance Test for ${path}
 const metrics = { loadTime: 0, lcp: 0, cls: 0, fid: 0, issues: [] };
 
 // Measure navigation timing
 const startTime = Date.now();
-await page.goto(params.previewUrl + '${path === '/' ? '' : path}');
+await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('load');
 metrics.loadTime = Date.now() - startTime;
 
@@ -229,8 +247,9 @@ if (metrics.issues.length > 0) {
 
 function generateAccessibilityCode(routine: AccessibilityRoutine, path: string): string {
   return `
+${getUrlHelper()}
 // Accessibility Test for ${path}
-await page.goto(params.previewUrl + '${path === '/' ? '' : path}');
+await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('networkidle');
 
 const a11yResults = { score: 100, issues: [], passed: [] };
@@ -323,8 +342,9 @@ if (a11yResults.score < 70) {
 
 function generateSEOCode(routine: SEORoutine, path: string): string {
   return `
+${getUrlHelper()}
 // SEO Test for ${path}
-await page.goto(params.previewUrl + '${path === '/' ? '' : path}');
+await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('domcontentloaded');
 
 const seoResults = { score: 100, issues: [], passed: [], meta: {} };
@@ -421,6 +441,7 @@ function generateResponsiveCode(routine: ResponsiveRoutine, path: string): strin
   ];
 
   return `
+${getUrlHelper()}
 // Responsive Design Test for ${path}
 const responsiveResults = { viewports: [], issues: [], passed: [] };
 
@@ -428,7 +449,7 @@ const testViewports = ${JSON.stringify(viewports)};
 
 for (const vp of testViewports) {
   await page.setViewportSize({ width: vp.width, height: vp.height });
-  await page.goto(params.previewUrl + '${path === '/' ? '' : path}');
+  await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
   await page.waitForLoadState('networkidle');
 
   const vpResult = { name: vp.name, width: vp.width, issues: [] };
@@ -492,8 +513,9 @@ if (responsiveResults.issues.length > 3) {
 
 function generateNavigationCode(routine: NavigationRoutine, path: string): string {
   return `
+${getUrlHelper()}
 // Navigation Test for ${path}
-await page.goto(params.previewUrl + '${path === '/' ? '' : path}');
+await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('networkidle');
 
 const navResults = { linksChecked: 0, issues: [], passed: [] };
@@ -510,7 +532,7 @@ navResults.linksChecked = navLinks.length;
 for (const link of navLinks.slice(0, 10)) { // Limit to first 10
   try {
     const fullUrl = link.href.startsWith('/')
-      ? params.previewUrl + link.href
+      ? buildUrl(params.previewUrl, link.href)
       : link.href;
 
     const response = await page.goto(fullUrl, { timeout: ${routine.config?.maxNavigationTime || 10000} });
@@ -528,7 +550,7 @@ for (const link of navLinks.slice(0, 10)) { // Limit to first 10
 // Test back button
 ${routine.config?.checkBackButton !== false ? `
 if (navLinks.length > 0) {
-  await page.goto(params.previewUrl + '${path === '/' ? '' : path}');
+  await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
   await page.click('nav a[href]');
   await page.waitForLoadState('networkidle');
   await page.goBack();
@@ -556,6 +578,7 @@ function generateConsoleErrorCode(routine: ConsoleErrorRoutine, path: string): s
   const ignorePatterns = routine.config?.ignorePatterns || [];
 
   return `
+${getUrlHelper()}
 // Console Error Test for ${path}
 const consoleMessages = { errors: [], warnings: [], info: [] };
 
@@ -580,7 +603,7 @@ page.on('pageerror', error => {
   consoleMessages.errors.push(error.message);
 });
 
-await page.goto(params.previewUrl + '${path === '/' ? '' : path}');
+await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('networkidle');
 
 // Wait a bit for any async errors
@@ -602,8 +625,9 @@ if (consoleMessages.warnings.length > 5) {
 
 function generateVisualCode(routine: VisualRoutine, path: string): string {
   return `
+${getUrlHelper()}
 // Visual Test for ${path}
-await page.goto(params.previewUrl + '${path === '/' ? '' : path}');
+await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('networkidle');
 
 const visualResults = { issues: [], passed: [], screenshots: [] };
@@ -670,8 +694,9 @@ if (visualResults.issues.length > 0) {
 
 function generateFormCode(routine: FormRoutine, path: string): string {
   return `
+${getUrlHelper()}
 // Form Test for ${path}
-await page.goto(params.previewUrl + '${path === '/' ? '' : path}');
+await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('networkidle');
 
 const formResults = { issues: [], passed: [], fields: [] };
@@ -735,8 +760,9 @@ if (formResults.issues.length > 0) {
 
 function generateLinkCode(routine: LinkValidationRoutine, path: string): string {
   return `
+${getUrlHelper()}
 // Link Validation Test for ${path}
-await page.goto(params.previewUrl + '${path === '/' ? '' : path}');
+await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('networkidle');
 
 const linkResults = { total: 0, valid: 0, broken: [], external: [], issues: [] };
@@ -759,8 +785,8 @@ const internalLinks = allLinks.filter(l => l.href && !l.isExternal && !l.href.st
 for (const link of internalLinks.slice(0, 15)) { // Limit checks
   try {
     const fullUrl = link.href.startsWith('/')
-      ? params.previewUrl + link.href
-      : params.previewUrl + '/' + link.href;
+      ? buildUrl(params.previewUrl, link.href)
+      : buildUrl(params.previewUrl, '/' + link.href);
 
     const response = await page.request.head(fullUrl);
 

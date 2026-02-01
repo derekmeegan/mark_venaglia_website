@@ -164,9 +164,10 @@ export async function runTests(
     entries,
     async ([testId, functionId]) => {
       try {
+        const bypassSecret = process.env.VERCEL_BYPASS_SECRET;
         const invocationId = await invokeFunction(
           functionId,
-          { previewUrl },
+          { previewUrl, bypassSecret },
           apiKey
         );
         console.log(`✓ Invoked test ${testId}: ${invocationId}`);
