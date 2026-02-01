@@ -203,8 +203,13 @@ export async function runTests(
       const status = await waitForInvocation(inv.invocationId, apiKey);
       const duration = Date.now() - startTime;
 
-      // Log full status for debugging
-      console.log(`[${inv.testId}] Invocation status:`, JSON.stringify(status, null, 2));
+      // Log status for debugging (exclude large fields like screenshots)
+      const { results, ...statusWithoutResults } = status;
+      console.log(`[${inv.testId}] Invocation status:`, JSON.stringify(statusWithoutResults, null, 2));
+      if (results) {
+        const { finalScreenshot, ...resultsWithoutScreenshot } = results;
+        console.log(`[${inv.testId}] Results:`, JSON.stringify(resultsWithoutScreenshot, null, 2));
+      }
 
       // Check if function execution failed
       if (status.status === 'FAILED') {
@@ -235,8 +240,7 @@ export async function runTests(
         error: results?.error,
         duration,
         sessionId: results?.sessionId || status.sessionId,
-        sessionUrl: results?.sessionUrl || `https://www.browserbase.com/sessions/${status.sessionId}`,
-        finalScreenshot: results?.finalScreenshot
+        sessionUrl: results?.sessionUrl || `https://www.browserbase.com/sessions/${status.sessionId}`
       };
     } catch (error) {
       const result: TestResult = {

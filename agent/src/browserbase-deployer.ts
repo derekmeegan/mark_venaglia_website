@@ -75,12 +75,6 @@ defineFn("${test.id}", async (ctx, params) => {
     // Test steps (auto-generated from structured definition)
     ${testCode}
 
-    // Capture final screenshot for visual regression
-    const finalScreenshot = await page.screenshot({
-      encoding: "base64",
-      fullPage: true
-    });
-
     // Close browser and release session
     await browser.close();
     await releaseSession(ctx.session.id);
@@ -90,13 +84,9 @@ defineFn("${test.id}", async (ctx, params) => {
       testId: "${test.id}",
       testName: "${test.name}",
       sessionId: ctx.session.id,
-      sessionUrl,
-      finalScreenshot
+      sessionUrl
     };
   } catch (error) {
-    // Capture error state screenshot
-    const finalScreenshot = await page.screenshot({ encoding: "base64" }).catch(() => null);
-
     // Close browser and release session
     await browser.close().catch(() => {});
     await releaseSession(ctx.session.id);
@@ -107,8 +97,7 @@ defineFn("${test.id}", async (ctx, params) => {
       testName: "${test.name}",
       error: String(error),
       sessionId: ctx.session.id,
-      sessionUrl,
-      finalScreenshot
+      sessionUrl
     };
   }
 }, {
