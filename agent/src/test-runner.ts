@@ -202,29 +202,38 @@ export async function runTests(
       const status = await waitForInvocation(inv.invocationId, apiKey);
       const duration = Date.now() - startTime;
 
-      if (status.status === 'FAILED' || !status.results) {
-        console.log(`✗ ${inv.testId}: Function execution failed (${(duration/1000).toFixed(1)}s)`);
+      // Check for failure or missing/empty results
+      // An empty object {} is truthy but doesn't have a success property
+      const results = status.results;
+      const hasValidResults = results && typeof results.success === 'boolean';
+
+      if (status.status === 'FAILED' || !hasValidResults) {
+        const errorMsg = !hasValidResults
+          ? `Function returned empty/invalid results: ${JSON.stringify(results)}`
+          : 'Function execution failed';
+        console.log(`✗ ${inv.testId}: ${errorMsg} (${(duration/1000).toFixed(1)}s)`);
         return {
           testId: inv.testId,
           success: false,
-          error: 'Function execution failed',
+          error: errorMsg,
           duration,
           sessionId: status.sessionId || '',
           sessionUrl: `https://www.browserbase.com/sessions/${status.sessionId || ''}`
         };
       }
 
-      const success = status.results.success;
+      // At this point, results is guaranteed to be defined with a boolean success
+      const success = results.success;
       console.log(`${success ? '✓' : '✗'} ${inv.testId}: ${success ? 'passed' : 'failed'} (${(duration/1000).toFixed(1)}s)`);
 
       return {
         testId: inv.testId,
-        success: status.results.success,
-        error: status.results.error,
+        success: results.success,
+        error: results.error,
         duration,
-        sessionId: status.results.sessionId || status.sessionId,
-        sessionUrl: status.results.sessionUrl || `https://www.browserbase.com/sessions/${status.sessionId}`,
-        finalScreenshot: status.results.finalScreenshot
+        sessionId: results.sessionId || status.sessionId,
+        sessionUrl: results.sessionUrl || `https://www.browserbase.com/sessions/${status.sessionId}`,
+        finalScreenshot: results.finalScreenshot
       };
     } catch (error) {
       const result: TestResult = {
