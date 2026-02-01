@@ -92,7 +92,7 @@ export async function analyzeChanges(
     prompt,
     options: {
       model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929',
-      maxTurns: 1,
+      maxTurns: 5,  // Allow more turns for complex analysis
       outputFormat: {
         type: 'json_schema',
         schema: {
@@ -109,8 +109,8 @@ export async function analyzeChanges(
       },
       // Don't persist this session
       persistSession: false,
-      // Only use read tools if needed
-      tools: ['Read', 'Glob', 'Grep'],
+      // Disable tools - just analyze the provided diff directly
+      tools: [],
     }
   });
 

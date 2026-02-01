@@ -10,8 +10,29 @@ import type { TestManifest, AnalysisResult } from './types.js';
 
 const execAsync = promisify(exec);
 
+// Files to exclude from diff analysis (not relevant to E2E tests)
+const EXCLUDED_PATTERNS = [
+  'package-lock.json',
+  'pnpm-lock.yaml',
+  'yarn.lock',
+  '*.lock',
+  'dist/',
+  'agent/',  // Exclude the test agent itself
+  '.github/',
+  'node_modules/',
+  '*.md',
+  '*.txt',
+  '.gitignore',
+  '.env*',
+  'tsconfig*.json',
+  '*.config.js',
+  '*.config.ts',
+];
+
+const MAX_DIFF_SIZE = 50000; // 50k chars max
+
 /**
- * Get the git diff for the current PR
+ * Get the git diff for the current PR, filtered and truncated
  */
 export async function getGitDiff(): Promise<string> {
   const baseBranch = process.env.GITHUB_BASE_REF || 'main';
@@ -20,13 +41,33 @@ export async function getGitDiff(): Promise<string> {
     // Fetch the base branch to compare against
     await execAsync(`git fetch origin ${baseBranch} --depth=1`).catch(() => {});
 
-    // Get the diff
+    // Build exclude patterns for git diff
+    const excludeArgs = EXCLUDED_PATTERNS
+      .map(p => `':(exclude)${p}'`)
+      .join(' ');
+
+    // Get the diff excluding non-essential files
     const { stdout } = await execAsync(
-      `git diff origin/${baseBranch}...HEAD --no-color`,
+      `git diff origin/${baseBranch}...HEAD --no-color -- . ${excludeArgs}`,
       { maxBuffer: 10 * 1024 * 1024 } // 10MB buffer for large diffs
     );
 
-    return stdout;
+    let diff = stdout;
+
+    // If still too large, truncate with a note
+    if (diff.length > MAX_DIFF_SIZE) {
+      console.log(`Diff too large (${diff.length} chars), truncating to ${MAX_DIFF_SIZE}`);
+      diff = diff.slice(0, MAX_DIFF_SIZE) + '\n\n... [DIFF TRUNCATED - showing first 50k chars] ...\n';
+
+      // Also get list of all changed files for context
+      const { stdout: fileList } = await execAsync(
+        `git diff origin/${baseBranch}...HEAD --name-only`
+      );
+      diff += `\n## All Changed Files:\n${fileList}`;
+    }
+
+    console.log(`Diff size: ${diff.length} characters`);
+    return diff;
   } catch (error) {
     console.warn('Failed to get git diff, falling back to staged changes:', error);
 
