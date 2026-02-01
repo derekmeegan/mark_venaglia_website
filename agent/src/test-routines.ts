@@ -553,7 +553,17 @@ if (navResults.issues.length > 0) {
 }
 
 function generateConsoleErrorCode(routine: ConsoleErrorRoutine, path: string): string {
-  const ignorePatterns = routine.config?.ignorePatterns || [];
+  // Default patterns to ignore (ServiceWorker, Vercel protection, common non-issues)
+  const defaultIgnorePatterns = [
+    'ServiceWorker',
+    'sw\\.js',
+    'Failed to register a ServiceWorker',
+    'x-vercel-protection-bypass',
+    'manifest\\.webmanifest',
+    'favicon',
+    'the server responded with a status of 401'
+  ];
+  const ignorePatterns = [...defaultIgnorePatterns, ...(routine.config?.ignorePatterns || [])];
 
   return `
 // Console Error Test for ${path}
@@ -563,9 +573,9 @@ page.on('console', msg => {
   const text = msg.text();
   const type = msg.type();
 
-  // Check ignore patterns
+  // Check ignore patterns (includes ServiceWorker and Vercel protection errors)
   const ignorePatterns = ${JSON.stringify(ignorePatterns)};
-  if (ignorePatterns.some(p => new RegExp(p).test(text))) {
+  if (ignorePatterns.some(p => new RegExp(p, 'i').test(text))) {
     return;
   }
 
@@ -577,6 +587,11 @@ page.on('console', msg => {
 });
 
 page.on('pageerror', error => {
+  // Also check pageerror against ignore patterns
+  const ignorePatterns = ${JSON.stringify(ignorePatterns)};
+  if (ignorePatterns.some(p => new RegExp(p, 'i').test(error.message))) {
+    return;
+  }
   consoleMessages.errors.push(error.message);
 });
 
