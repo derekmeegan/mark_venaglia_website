@@ -88,10 +88,23 @@ export async function analyzeChanges(
     .replace('{context}', codebaseContext)
     .replace('{diff}', diff);
 
-  console.log('Sending analysis request to Claude...');
+  const model = process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929';
+
+  // Log the full payload for visibility
+  console.log('\n' + '='.repeat(60));
+  console.log('📤 CLAUDE ANALYSIS REQUEST');
+  console.log('='.repeat(60));
+  console.log(`Model: ${model}`);
+  console.log(`Max tokens: 8192`);
+  console.log(`Prompt length: ${prompt.length} characters`);
+  console.log('\n--- FULL PROMPT START ---');
+  console.log(prompt);
+  console.log('--- FULL PROMPT END ---\n');
+  console.log('='.repeat(60));
+  console.log('Sending analysis request to Claude...\n');
 
   const response = await anthropic.messages.create({
-    model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929',
+    model,
     max_tokens: 8192,
     messages: [
       {
@@ -109,6 +122,18 @@ export async function analyzeChanges(
     }
   }
 
+  // Log the raw response
+  console.log('\n' + '='.repeat(60));
+  console.log('📥 CLAUDE ANALYSIS RESPONSE');
+  console.log('='.repeat(60));
+  console.log(`Stop reason: ${response.stop_reason}`);
+  console.log(`Input tokens: ${response.usage.input_tokens}`);
+  console.log(`Output tokens: ${response.usage.output_tokens}`);
+  console.log('\n--- RAW RESPONSE START ---');
+  console.log(resultText);
+  console.log('--- RAW RESPONSE END ---\n');
+  console.log('='.repeat(60));
+
   // Clean up any markdown code blocks if present
   resultText = resultText.trim();
   if (resultText.startsWith('```json')) {
@@ -124,7 +149,7 @@ export async function analyzeChanges(
   // Parse the JSON result
   try {
     const result = JSON.parse(resultText) as AnalysisResult;
-    console.log(`Analysis complete: ${result.summary}`);
+    console.log(`\n✅ Analysis complete: ${result.summary}`);
     return result;
   } catch (error) {
     console.error('Failed to parse Claude response:', resultText.slice(0, 500));
