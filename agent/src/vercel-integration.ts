@@ -55,13 +55,14 @@ async function findDeployment(
   projectId?: string
 ): Promise<VercelDeployment | null> {
   const params = new URLSearchParams({
-    target: 'preview',
-    limit: '10',
+    limit: '20',
   });
 
   if (projectId) {
     params.set('projectId', projectId);
   }
+
+  console.log(`Fetching deployments for project: ${projectId || 'all'}`);
 
   const response = await fetch(`${VERCEL_API}/v6/deployments?${params}`, {
     headers: {
@@ -76,12 +77,39 @@ async function findDeployment(
 
   const data = await response.json() as { deployments: VercelDeployment[] };
 
+  console.log(`Found ${data.deployments.length} deployments`);
+
   // Find deployment matching our commit SHA
-  const deployment = data.deployments.find(
+  let deployment = data.deployments.find(
     (d) => d.meta?.githubCommitSha === commitSha
   );
 
-  return deployment || null;
+  if (deployment) {
+    console.log(`Found deployment for commit ${commitSha.slice(0, 7)}: ${deployment.url}`);
+    return deployment;
+  }
+
+  // Fallback: if no exact SHA match, get the latest READY deployment for the branch
+  const branch = process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME;
+  if (branch) {
+    console.log(`No SHA match, looking for branch: ${branch}`);
+    deployment = data.deployments.find(
+      (d) => d.meta?.githubCommitRef === branch && d.readyState === 'READY'
+    );
+    if (deployment) {
+      console.log(`Found deployment for branch ${branch}: ${deployment.url}`);
+      return deployment;
+    }
+  }
+
+  // Last fallback: just return the most recent READY deployment
+  deployment = data.deployments.find((d) => d.readyState === 'READY');
+  if (deployment) {
+    console.log(`Using latest READY deployment: ${deployment.url}`);
+    return deployment;
+  }
+
+  return null;
 }
 
 function sleep(ms: number): Promise<void> {
