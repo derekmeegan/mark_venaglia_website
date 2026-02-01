@@ -7,6 +7,7 @@ import { join } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { stepsToCode } from './types.js';
+import { routineToCode } from './test-routines.js';
 import type { TestDefinition, DeploymentResult } from './types.js';
 
 const execAsync = promisify(exec);
@@ -19,8 +20,20 @@ const BB_API = 'https://api.browserbase.com/v1';
 function generateFunctionCode(test: TestDefinition): string {
   const viewport = test.viewport || { width: 1920, height: 1080 };
 
-  // Convert structured steps to Playwright code
-  const testCode = stepsToCode(test.steps);
+  // Convert steps or routines to Playwright code
+  let testCode = '';
+
+  if (test.routines && test.routines.length > 0) {
+    // Use routines (substantive tests)
+    testCode = test.routines
+      .map(routine => routineToCode(routine, test.path || '/'))
+      .join('\n\n');
+  } else if (test.steps && test.steps.length > 0) {
+    // Use simple steps
+    testCode = stepsToCode(test.steps);
+  } else {
+    testCode = '// No test steps or routines defined';
+  }
 
   return `import { defineFn } from "@browserbasehq/sdk-functions";
 import { chromium } from "playwright-core";
@@ -32,6 +45,7 @@ defineFn("${test.id}", async (ctx, params) => {
   const page = context?.pages()[0];
 
   if (!page) {
+    await releaseSession(ctx.session.id);
     return {
       success: false,
       testId: "${test.id}",
@@ -51,6 +65,10 @@ defineFn("${test.id}", async (ctx, params) => {
       fullPage: true
     });
 
+    // Close browser and release session
+    await browser.close();
+    await releaseSession(ctx.session.id);
+
     return {
       success: true,
       testId: "${test.id}",
@@ -62,6 +80,10 @@ defineFn("${test.id}", async (ctx, params) => {
   } catch (error) {
     // Capture error state screenshot
     const finalScreenshot = await page.screenshot({ encoding: "base64" }).catch(() => null);
+
+    // Close browser and release session
+    await browser.close().catch(() => {});
+    await releaseSession(ctx.session.id);
 
     return {
       success: false,
@@ -75,10 +97,28 @@ defineFn("${test.id}", async (ctx, params) => {
   }
 }, {
   sessionConfig: {
-    browserSettings: { advancedStealth: true },
     viewport: { width: ${viewport.width}, height: ${viewport.height} }
   }
 });
+
+// Helper to release the session
+async function releaseSession(sessionId: string) {
+  try {
+    await fetch(\`https://api.browserbase.com/v1/sessions/\${sessionId}\`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-BB-API-Key': process.env.BROWSERBASE_API_KEY || ''
+      },
+      body: JSON.stringify({
+        projectId: process.env.BROWSERBASE_PROJECT_ID,
+        status: 'REQUEST_RELEASE'
+      })
+    });
+  } catch (e) {
+    console.warn('Failed to release session:', e);
+  }
+}
 `;
 }
 

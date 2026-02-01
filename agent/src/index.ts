@@ -114,12 +114,21 @@ async function main() {
       for (const test of analysis.testsToAdd) {
         console.log(`\n🧪 Test: ${test.name} (${test.id})`);
         console.log(`   Flow: ${test.flow}`);
+        console.log(`   Path: ${test.path || '/'}`);
         console.log(`   Viewport: ${test.viewport?.width}x${test.viewport?.height}`);
         console.log(`   Description: ${test.description}`);
-        console.log('\n   Steps:');
-        test.steps.forEach((step, i) => {
-          console.log(`   ${i + 1}. ${JSON.stringify(step)}`);
-        });
+        if (test.steps && test.steps.length > 0) {
+          console.log('\n   Steps:');
+          test.steps.forEach((step, i) => {
+            console.log(`   ${i + 1}. ${JSON.stringify(step)}`);
+          });
+        }
+        if (test.routines && test.routines.length > 0) {
+          console.log('\n   Routines:');
+          test.routines.forEach((routine, i) => {
+            console.log(`   ${i + 1}. ${routine.routine}`);
+          });
+        }
         console.log('─'.repeat(60));
       }
     }

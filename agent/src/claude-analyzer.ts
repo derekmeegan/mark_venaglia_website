@@ -166,55 +166,145 @@ export async function analyzeChanges(
 }
 
 /**
- * Generate a simple initial test suite for first run
+ * Generate a comprehensive initial test suite using substantive routines
  */
 export function generateInitialTests(manifest: TestManifest): TestDefinition[] {
   const tests: TestDefinition[] = [];
 
-  // Generate homepage test
+  // Collect all unique paths from manifest
+  const allPaths = new Set<string>();
+  for (const flow of Object.values(manifest.flows || {})) {
+    if (flow.coveredPaths) {
+      flow.coveredPaths.forEach(p => allPaths.add(p));
+    }
+  }
+
+  // If no paths defined, at least test homepage
+  if (allPaths.size === 0) {
+    allPaths.add('/');
+  }
+
+  // Generate comprehensive tests for each page
+  for (const path of allPaths) {
+    const pathSlug = path === '/' ? 'homepage' : path.replace(/\//g, '-').slice(1);
+
+    // 1. Performance test
+    tests.push({
+      id: `perf-${pathSlug}`,
+      name: `Performance: ${path}`,
+      description: `Measure page load performance and Core Web Vitals for ${path}`,
+      flow: 'performance',
+      path,
+      routines: [
+        { routine: 'performance', config: { maxLoadTime: 3000, maxLCP: 2500, maxCLS: 0.1 } }
+      ],
+      viewport: { width: 1920, height: 1080 }
+    });
+
+    // 2. Accessibility test
+    tests.push({
+      id: `a11y-${pathSlug}`,
+      name: `Accessibility: ${path}`,
+      description: `Check accessibility compliance for ${path}`,
+      flow: 'accessibility',
+      path,
+      routines: [
+        { routine: 'accessibility', config: { checkAria: true, checkAltText: true, checkHeadingOrder: true, checkKeyboardNav: true } }
+      ],
+      viewport: { width: 1920, height: 1080 }
+    });
+
+    // 3. SEO test (only for main pages)
+    if (['/', '/about', '/contact'].includes(path) || allPaths.size <= 6) {
+      tests.push({
+        id: `seo-${pathSlug}`,
+        name: `SEO: ${path}`,
+        description: `Check SEO fundamentals for ${path}`,
+        flow: 'seo',
+        path,
+        routines: [
+          { routine: 'seo', config: { checkTitle: true, checkMetaDescription: true, checkOgTags: true, checkHeadingStructure: true } }
+        ],
+        viewport: { width: 1920, height: 1080 }
+      });
+    }
+
+    // 4. Console errors test
+    tests.push({
+      id: `console-${pathSlug}`,
+      name: `Console Errors: ${path}`,
+      description: `Check for JavaScript errors on ${path}`,
+      flow: 'console-errors',
+      path,
+      routines: [
+        { routine: 'console-errors', config: { allowWarnings: true } }
+      ],
+      viewport: { width: 1920, height: 1080 }
+    });
+
+    // 5. Visual test
+    tests.push({
+      id: `visual-${pathSlug}`,
+      name: `Visual: ${path}`,
+      description: `Visual regression check for ${path}`,
+      flow: 'visual',
+      path,
+      routines: [
+        { routine: 'visual', config: { captureFullPage: true, checkImagesLoaded: true } }
+      ],
+      viewport: { width: 1920, height: 1080 }
+    });
+  }
+
+  // 6. Responsive test (just for homepage to keep run time reasonable)
   tests.push({
-    id: 'nav-homepage-load',
-    name: 'Homepage loads successfully',
-    description: 'Verify the homepage loads and displays main content',
-    flow: 'navigation',
-    steps: [
-      { action: 'navigate', path: '/' },
-      { action: 'waitForLoad', state: 'networkidle' },
-      { action: 'assertTitle', pattern: '/.+/' },
-      { action: 'assertVisible', selector: 'main' },
-      { action: 'screenshot', fullPage: true }
+    id: 'responsive-homepage',
+    name: 'Responsive: Homepage',
+    description: 'Check responsive design across viewport sizes',
+    flow: 'responsive',
+    path: '/',
+    routines: [
+      {
+        routine: 'responsive',
+        config: {
+          viewports: [
+            { name: 'mobile', width: 375, height: 667 },
+            { name: 'tablet', width: 768, height: 1024 },
+            { name: 'desktop', width: 1920, height: 1080 }
+          ],
+          checkNoHorizontalScroll: true,
+          checkTextReadable: true
+        }
+      }
     ],
     viewport: { width: 1920, height: 1080 }
   });
 
-  // Generate test for each known path
-  const seenPaths = new Set<string>(['/']);
+  // 7. Navigation test
+  tests.push({
+    id: 'navigation-site',
+    name: 'Navigation: Site-wide',
+    description: 'Verify all navigation links work correctly',
+    flow: 'navigation',
+    path: '/',
+    routines: [
+      { routine: 'navigation', config: { checkAllLinks: true, checkBackButton: true, maxNavigationTime: 10000 } }
+    ],
+    viewport: { width: 1920, height: 1080 }
+  });
 
-  for (const [flowName, flow] of Object.entries(manifest.flows || {})) {
-    if (flow.coveredPaths) {
-      for (const path of flow.coveredPaths) {
-        if (seenPaths.has(path)) continue;
-        seenPaths.add(path);
-
-        const pathSlug = path.replace(/\//g, '-').slice(1) || 'home';
-
-        tests.push({
-          id: `page-${pathSlug}`,
-          name: `Page ${path} loads successfully`,
-          description: `Verify ${path} page loads correctly`,
-          flow: flowName,
-          steps: [
-            { action: 'navigate', path },
-            { action: 'waitForLoad', state: 'networkidle' },
-            { action: 'assertVisible', selector: 'main' },
-            { action: 'assertVisible', selector: 'h1' },
-            { action: 'screenshot', fullPage: true }
-          ],
-          viewport: { width: 1920, height: 1080 }
-        });
-      }
-    }
-  }
+  // 8. Link validation
+  tests.push({
+    id: 'links-homepage',
+    name: 'Links: Homepage',
+    description: 'Validate all links on homepage',
+    flow: 'links',
+    path: '/',
+    routines: [
+      { routine: 'links', config: { checkInternal: true, checkExternal: false, checkAnchors: true } }
+    ],
+    viewport: { width: 1920, height: 1080 }
+  });
 
   return tests;
 }

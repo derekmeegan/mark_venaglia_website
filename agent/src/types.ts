@@ -37,13 +37,18 @@ export type TestStep =
   | { action: 'press'; key: string }
   | { action: 'wait'; ms: number };
 
-// Test definitions
+// Import routine types
+import type { TestRoutine } from './test-routines.js';
+
+// Test definitions - can use either steps OR routines
 export interface TestDefinition {
   id: string;
   name: string;
   description: string;
-  steps: TestStep[];  // Structured steps instead of raw code
+  steps?: TestStep[];       // Simple structured steps
+  routines?: TestRoutine[]; // Substantive test routines
   flow: string;
+  path?: string;            // Page path for routines
   viewport?: Viewport;
 }
 
