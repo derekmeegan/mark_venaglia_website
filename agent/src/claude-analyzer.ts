@@ -4,6 +4,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import type { AnalysisResult, TestManifest, TestDefinition } from './types.js';
+import type { TestRoutine } from './test-routines.js';
 
 const anthropic = new Anthropic();
 
@@ -180,6 +181,10 @@ const TEST_VIEWPORTS = (process.env.TEST_VIEWPORTS || 'mobile,desktop')
 
 /**
  * Generate a comprehensive initial test suite using substantive routines
+ *
+ * CONSOLIDATED: Instead of separate tests per routine type, we create ONE
+ * comprehensive test per page/viewport that runs ALL routines together.
+ * This dramatically reduces the number of browser functions deployed.
  */
 export function generateInitialTests(manifest: TestManifest): TestDefinition[] {
   const tests: TestDefinition[] = [];
@@ -200,7 +205,8 @@ export function generateInitialTests(manifest: TestManifest): TestDefinition[] {
   console.log(`Generating tests for viewports: ${TEST_VIEWPORTS.join(', ')}`);
   console.log(`Testing ${allPaths.size} pages: ${[...allPaths].join(', ')}`);
 
-  // Generate comprehensive tests for each page AND each viewport
+  // Generate ONE comprehensive test per page per viewport
+  // This runs all routines in a single browser session
   for (const path of allPaths) {
     const pathSlug = path === '/' ? 'homepage' : path.replace(/\//g, '-').slice(1);
 
@@ -208,79 +214,44 @@ export function generateInitialTests(manifest: TestManifest): TestDefinition[] {
       const vp = VIEWPORTS[vpKey];
       const vpSuffix = TEST_VIEWPORTS.length > 1 ? `-${vp.name}` : '';
 
-      // 1. Performance test
-      tests.push({
-        id: `perf-${pathSlug}${vpSuffix}`,
-        name: `Performance: ${path} [${vp.name}]`,
-        description: `Measure page load performance for ${path} on ${vp.name}`,
-        flow: 'performance',
-        path,
-        routines: [
-          { routine: 'performance', config: { maxLoadTime: 3000, maxLCP: 2500, maxCLS: 0.1 } }
-        ],
-        viewport: { width: vp.width, height: vp.height }
-      });
+      // Build routines array - all checks run in one test
+      const routines: TestRoutine[] = [
+        // Performance metrics
+        { routine: 'performance', config: { maxLoadTime: 3000, maxLCP: 2500, maxCLS: 0.1 } },
+        // Accessibility checks
+        { routine: 'accessibility', config: { checkAria: true, checkAltText: true, checkHeadingOrder: true, checkKeyboardNav: true } },
+        // Console error detection
+        { routine: 'console-errors', config: { allowWarnings: true } },
+        // Visual verification
+        { routine: 'visual', config: { captureFullPage: true, checkImagesLoaded: true } }
+      ];
 
-      // 2. Accessibility test
-      tests.push({
-        id: `a11y-${pathSlug}${vpSuffix}`,
-        name: `Accessibility: ${path} [${vp.name}]`,
-        description: `Check accessibility compliance for ${path} on ${vp.name}`,
-        flow: 'accessibility',
-        path,
-        routines: [
-          { routine: 'accessibility', config: { checkAria: true, checkAltText: true, checkHeadingOrder: true, checkKeyboardNav: true } }
-        ],
-        viewport: { width: vp.width, height: vp.height }
-      });
-
-      // 3. SEO test (only for main pages, desktop only)
-      if (vpKey === 'desktop' && (['/', '/about', '/contact'].includes(path) || allPaths.size <= 6)) {
-        tests.push({
-          id: `seo-${pathSlug}`,
-          name: `SEO: ${path}`,
-          description: `Check SEO fundamentals for ${path}`,
-          flow: 'seo',
-          path,
-          routines: [
-            { routine: 'seo', config: { checkTitle: true, checkMetaDescription: true, checkOgTags: true, checkHeadingStructure: true } }
-          ],
-          viewport: { width: vp.width, height: vp.height }
+      // Add SEO checks for desktop only
+      if (vpKey === 'desktop') {
+        routines.push({
+          routine: 'seo',
+          config: { checkTitle: true, checkMetaDescription: true, checkOgTags: true, checkHeadingStructure: true }
         });
       }
 
-      // 4. Console errors test
       tests.push({
-        id: `console-${pathSlug}${vpSuffix}`,
-        name: `Console Errors: ${path} [${vp.name}]`,
-        description: `Check for JavaScript errors on ${path} on ${vp.name}`,
-        flow: 'console-errors',
+        id: `comprehensive-${pathSlug}${vpSuffix}`,
+        name: `Full Check: ${path} [${vp.name}]`,
+        description: `Comprehensive test for ${path} on ${vp.name} - performance, accessibility, console errors, visual${vpKey === 'desktop' ? ', SEO' : ''}`,
+        flow: 'comprehensive',
         path,
-        routines: [
-          { routine: 'console-errors', config: { allowWarnings: true } }
-        ],
-        viewport: { width: vp.width, height: vp.height }
-      });
-
-      // 5. Visual test
-      tests.push({
-        id: `visual-${pathSlug}${vpSuffix}`,
-        name: `Visual: ${path} [${vp.name}]`,
-        description: `Visual check for ${path} on ${vp.name}`,
-        flow: 'visual',
-        path,
-        routines: [
-          { routine: 'visual', config: { captureFullPage: true, checkImagesLoaded: true } }
-        ],
+        routines,
         viewport: { width: vp.width, height: vp.height }
       });
     }
   }
 
-  // 6. Responsive test (tests all viewports in one test)
+  // Add site-wide tests (only need to run once, not per-page)
+
+  // Responsive test - checks all viewport sizes in one test
   tests.push({
-    id: 'responsive-homepage',
-    name: 'Responsive: Homepage',
+    id: 'responsive-site',
+    name: 'Responsive: Site-wide',
     description: 'Check responsive design across all viewport sizes',
     flow: 'responsive',
     path: '/',
@@ -298,7 +269,7 @@ export function generateInitialTests(manifest: TestManifest): TestDefinition[] {
     viewport: { width: 1920, height: 1080 }
   });
 
-  // 7. Navigation test (desktop)
+  // Navigation test - validates all nav links work
   tests.push({
     id: 'navigation-site',
     name: 'Navigation: Site-wide',
@@ -311,10 +282,10 @@ export function generateInitialTests(manifest: TestManifest): TestDefinition[] {
     viewport: { width: 1920, height: 1080 }
   });
 
-  // 8. Link validation (desktop)
+  // Link validation - checks for broken links
   tests.push({
-    id: 'links-homepage',
-    name: 'Links: Homepage',
+    id: 'links-site',
+    name: 'Links: Site-wide',
     description: 'Validate all links on homepage',
     flow: 'links',
     path: '/',
@@ -324,7 +295,7 @@ export function generateInitialTests(manifest: TestManifest): TestDefinition[] {
     viewport: { width: 1920, height: 1080 }
   });
 
-  console.log(`Generated ${tests.length} tests total`);
+  console.log(`Generated ${tests.length} tests total (consolidated)`);
 
   return tests;
 }
