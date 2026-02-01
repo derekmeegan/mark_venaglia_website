@@ -8,6 +8,89 @@ import type { TestResult, AnalysisResult, ReportData } from './types.js';
 const COMMENT_MARKER = '<!-- pr-test-agent-report -->';
 
 /**
+ * Interpret error messages and provide actionable feedback
+ */
+function interpretError(error: string): { summary: string; explanation: string; suggestion: string } {
+  // 401 errors - authentication/protection issues
+  if (error.includes('401') || error.includes('Unauthorized')) {
+    if (error.includes('manifest.webmanifest') || error.includes('favicon') || error.includes('.png') || error.includes('.jpg')) {
+      return {
+        summary: '🔒 Vercel Deployment Protection blocking static assets',
+        explanation: 'The preview deployment has protection enabled, and static resources (images, manifest, favicon) are returning 401 Unauthorized errors.',
+        suggestion: 'Ensure VERCEL_BYPASS_SECRET is correctly set in GitHub secrets and matches your Vercel project settings. The bypass needs to be applied to all requests, not just page navigations.'
+      };
+    }
+    return {
+      summary: '🔒 Authentication required',
+      explanation: 'The preview deployment requires authentication to access.',
+      suggestion: 'Check that VERCEL_BYPASS_SECRET is configured correctly in both Vercel and GitHub secrets.'
+    };
+  }
+
+  // Console errors
+  if (error.includes('Console errors found')) {
+    const errorCount = (error.match(/Failed to load resource/g) || []).length;
+    return {
+      summary: `🔴 ${errorCount} console error(s) detected`,
+      explanation: 'The page is generating JavaScript console errors during load, which may indicate broken resources or runtime errors.',
+      suggestion: 'Check the browser console in the Browserbase session replay to see the full error details.'
+    };
+  }
+
+  // Timeout errors
+  if (error.includes('timeout') || error.includes('Timeout')) {
+    return {
+      summary: '⏱️ Test timeout',
+      explanation: 'The test timed out waiting for a page or element to load.',
+      suggestion: 'Check if the page is loading slowly or if there are network issues. Consider increasing timeout values or optimizing page performance.'
+    };
+  }
+
+  // Element not found
+  if (error.includes('not found') || error.includes('No element') || error.includes('selector')) {
+    return {
+      summary: '🔍 Element not found',
+      explanation: 'The test could not find an expected element on the page.',
+      suggestion: 'The page structure may have changed. Check if the selectors in the test match the current HTML structure.'
+    };
+  }
+
+  // Navigation errors
+  if (error.includes('net::ERR') || error.includes('navigation')) {
+    return {
+      summary: '🌐 Navigation error',
+      explanation: 'The browser failed to navigate to the page.',
+      suggestion: 'Check if the URL is correct and the deployment is accessible.'
+    };
+  }
+
+  // Performance issues
+  if (error.includes('Performance') || error.includes('load too slow') || error.includes('LCP') || error.includes('CLS')) {
+    return {
+      summary: '🐢 Performance issue',
+      explanation: 'The page did not meet performance thresholds (load time, LCP, CLS).',
+      suggestion: 'Review the Core Web Vitals in the test output and optimize slow-loading resources.'
+    };
+  }
+
+  // Accessibility issues
+  if (error.includes('Accessibility') || error.includes('a11y') || error.includes('alt text') || error.includes('ARIA')) {
+    return {
+      summary: '♿ Accessibility issue',
+      explanation: 'The page has accessibility problems that may affect users with disabilities.',
+      suggestion: 'Review the accessibility findings and ensure proper alt text, ARIA labels, and heading structure.'
+    };
+  }
+
+  // Default interpretation
+  return {
+    summary: '❌ Test failed',
+    explanation: error.slice(0, 200) + (error.length > 200 ? '...' : ''),
+    suggestion: 'Review the full error in the Browserbase session replay for more context.'
+  };
+}
+
+/**
  * Format test results as a markdown report
  */
 function formatReport(data: ReportData): string {
@@ -42,31 +125,62 @@ ${analysis.changedFlows.length > 0 ? analysis.changedFlows.map((f) => `- ${f}`).
 ${results.map((r) => `| ${r.testId} | ${r.success ? '✅' : '❌'} | ${r.duration}ms | [View](${r.sessionUrl}) |`).join('\n')}
 `;
 
-  // Add failure details
+  // Add failure details with interpreted errors
   const failures = results.filter((r) => !r.success);
   if (failures.length > 0) {
+    // Group failures by error type for summary
+    const errorGroups = new Map<string, typeof failures>();
+    failures.forEach((f) => {
+      const interpreted = interpretError(f.error || 'Unknown error');
+      const key = interpreted.summary;
+      if (!errorGroups.has(key)) {
+        errorGroups.set(key, []);
+      }
+      errorGroups.get(key)!.push(f);
+    });
+
     report += `
-### Failures
+### Failure Summary
 
-${failures.map((r) => `
+`;
+    // Show grouped error summary
+    for (const [errorType, failedTests] of errorGroups) {
+      const interpreted = interpretError(failedTests[0].error || '');
+      report += `
+#### ${errorType} (${failedTests.length} test${failedTests.length > 1 ? 's' : ''})
+
+> **What happened:** ${interpreted.explanation}
+>
+> **Suggested fix:** ${interpreted.suggestion}
+
+Affected tests: ${failedTests.map(t => `\`${t.testId}\``).join(', ')}
+
+`;
+    }
+
+    report += `
+### Failure Details
+
+${failures.map((r) => {
+  const interpreted = interpretError(r.error || 'Unknown error');
+  return `
 <details>
-<summary>❌ <strong>${r.testId}</strong></summary>
+<summary>${interpreted.summary} - <strong>${r.testId}</strong></summary>
 
-**Error:**
+**Test:** ${r.testId}
+
+**Issue:** ${interpreted.explanation}
+
+**Raw Error:**
 \`\`\`
 ${r.error || 'Unknown error'}
 \`\`\`
 
 **🎬 Session Replay:** [View in Browserbase](${r.sessionUrl})
 
-${r.finalScreenshot ? `
-**Screenshot at failure:**
-
-<img src="data:image/png;base64,${r.finalScreenshot}" width="600" />
-` : ''}
-
 </details>
-`).join('\n')}
+`;
+}).join('\n')}
 `;
   }
 
