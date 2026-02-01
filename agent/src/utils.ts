@@ -11,14 +11,16 @@ import type { TestManifest, AnalysisResult } from './types.js';
 const execAsync = promisify(exec);
 
 // Files to exclude from diff analysis (not relevant to E2E tests)
+// We only care about UI/app code changes, not tooling or test infrastructure
 const EXCLUDED_PATTERNS = [
   'package-lock.json',
   'pnpm-lock.yaml',
   'yarn.lock',
   '*.lock',
   'dist/',
-  'agent/',  // Exclude the test agent itself
-  '.github/',
+  'agent/',      // Exclude the test agent itself
+  'tests/',      // Exclude test manifest and baselines
+  '.github/',    // Exclude workflow files
   'node_modules/',
   '*.md',
   '*.txt',
@@ -125,15 +127,33 @@ Framework: ${pkgJson.dependencies?.next ? 'Next.js' : pkgJson.dependencies?.reac
 }
 
 /**
+ * Get the repo root directory (parent of agent directory if running from agent/)
+ */
+function getRepoRoot(): string {
+  const cwd = process.cwd();
+  // If we're in the agent directory, go up one level
+  if (cwd.endsWith('/agent') || cwd.endsWith('\\agent')) {
+    return join(cwd, '..');
+  }
+  return cwd;
+}
+
+/**
  * Read the test manifest file
  */
 export async function readTestManifest(): Promise<TestManifest> {
-  const manifestPath = join(process.cwd(), 'tests', 'manifest.json');
+  const repoRoot = getRepoRoot();
+  const manifestPath = join(repoRoot, 'tests', 'manifest.json');
+
+  console.log(`Reading manifest from: ${manifestPath}`);
 
   try {
     const content = await readFile(manifestPath, 'utf-8');
-    return JSON.parse(content) as TestManifest;
-  } catch {
+    const manifest = JSON.parse(content) as TestManifest;
+    console.log(`Manifest loaded: ${Object.keys(manifest.flows || {}).length} flows defined`);
+    return manifest;
+  } catch (error) {
+    console.warn(`Failed to read manifest from ${manifestPath}:`, error);
     // Return default manifest if file doesn't exist
     return {
       version: 1,
@@ -149,7 +169,8 @@ export async function updateTestManifest(
   manifest: TestManifest,
   analysis: AnalysisResult
 ): Promise<void> {
-  const manifestPath = join(process.cwd(), 'tests', 'manifest.json');
+  const repoRoot = getRepoRoot();
+  const manifestPath = join(repoRoot, 'tests', 'manifest.json');
 
   // Add new flows from tests
   for (const test of analysis.testsToAdd) {

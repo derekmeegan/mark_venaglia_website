@@ -20,6 +20,7 @@ function generateFunctionCode(test: TestDefinition): string {
 
   return `import { defineFn } from "@browserbasehq/sdk-functions";
 import { chromium } from "playwright-core";
+import { expect } from "@playwright/test";
 
 defineFn("${test.id}", async (ctx, params) => {
   const browser = await chromium.connectOverCDP(ctx.session.connectUrl);
@@ -125,6 +126,7 @@ export async function deployTests(tests: TestDefinition[]): Promise<DeploymentRe
       type: 'module',
       dependencies: {
         '@browserbasehq/sdk-functions': '^0.0.5',
+        '@playwright/test': '^1.50.0',
         'playwright-core': '^1.50.0'
       }
     }, null, 2));
