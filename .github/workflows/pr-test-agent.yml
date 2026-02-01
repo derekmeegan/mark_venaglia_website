@@ -3,9 +3,19 @@ name: PR Test Agent
 on:
   pull_request:
     types: [opened, synchronize]
+  workflow_dispatch:
+    inputs:
+      init_mode:
+        description: 'Run in init mode to generate baseline tests for all pages'
+        type: boolean
+        default: false
+      preview_url:
+        description: 'Preview URL to test against (optional, will wait for Vercel if not provided)'
+        type: string
+        required: false
 
 concurrency:
-  group: pr-test-${{ github.head_ref }}
+  group: pr-test-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 permissions:
@@ -47,9 +57,10 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           GITHUB_HEAD_REF: ${{ github.head_ref }}
-          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_BASE_REF: ${{ github.base_ref || 'main' }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: node dist/index.js
+          PR_NUMBER: ${{ github.event.pull_request.number || '0' }}
+          PREVIEW_URL: ${{ github.event.inputs.preview_url || '' }}
+        run: node dist/index.js ${{ github.event.inputs.init_mode == 'true' && '--init' || '' }}
