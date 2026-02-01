@@ -226,7 +226,6 @@ export async function runTests(
 
       // If status is COMPLETED, treat as success even if results are empty
       // (the function ran without throwing, which means tests passed)
-      const results = status.results;
       const hasResults = results && Object.keys(results).length > 0;
 
       // If we have explicit results, use them; otherwise assume success for COMPLETED status
