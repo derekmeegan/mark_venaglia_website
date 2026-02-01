@@ -7,12 +7,11 @@ import type { AnalysisResult, TestManifest, TestDefinition } from './types.js';
 
 const anthropic = new Anthropic();
 
-const ANALYSIS_PROMPT = `You are a senior QA engineer analyzing a PR for a Next.js website.
+const ANALYSIS_PROMPT = `You are a senior QA engineer analyzing a PR for a website.
 Your job is to:
 1. Analyze what user-facing flows/pages were affected by the changes
-2. Determine if existing tests need to be modified
-3. Generate new Playwright tests for any new functionality
-4. Decide which tests should be run
+2. Generate test steps for affected functionality
+3. Decide which tests should be run
 
 ## Current Test Suite
 {manifest}
@@ -34,47 +33,56 @@ Analyze this PR and return a JSON response with the following structure:
       "id": "unique-test-id",
       "name": "Human readable test name",
       "description": "What this test verifies",
-      "code": "// Playwright code - assume 'page' is available and PREVIEW_URL is passed as params.previewUrl",
+      "steps": [/* array of test steps - see below */],
       "flow": "which flow this tests",
       "viewport": { "width": 1920, "height": 1080 }
     }
   ],
-  "testsToModify": [
-    {
-      "testId": "existing-test-id",
-      "reason": "why this test needs modification",
-      "original": { /* original test definition */ },
-      "updated": { /* updated test definition */ }
-    }
-  ],
+  "testsToModify": [],
   "testsToRun": ["list of test IDs to execute"],
   "summary": "Brief summary of the analysis"
 }
 
-## Test Code Guidelines
+## Available Test Steps
 
-When writing test code:
-- Use \`params.previewUrl\` for the base URL (passed to the browser function)
-- Use Playwright best practices (locators, waiting, assertions)
-- Include visual screenshots with \`await page.screenshot({ fullPage: true })\`
-- Test responsive viewports when relevant (mobile: 375x667, tablet: 768x1024, desktop: 1920x1080)
-- Add meaningful assertions that verify functionality
-- Handle async operations properly with appropriate waits
+Instead of writing code, define tests as an array of structured steps:
 
-Example test code:
-\`\`\`
-await page.goto(params.previewUrl);
-await page.waitForLoadState('networkidle');
+| Action | Parameters | Example |
+|--------|------------|---------|
+| navigate | path: string | {"action":"navigate","path":"/"} |
+| waitForLoad | state?: "networkidle" | {"action":"waitForLoad","state":"networkidle"} |
+| waitForSelector | selector, state? | {"action":"waitForSelector","selector":"main"} |
+| waitForUrl | pattern: string | {"action":"waitForUrl","pattern":"**/about"} |
+| click | selector: string | {"action":"click","selector":"nav a[href='/about']"} |
+| fill | selector, value | {"action":"fill","selector":"input[name='email']","value":"test@test.com"} |
+| hover | selector: string | {"action":"hover","selector":".menu-item"} |
+| screenshot | name?, fullPage? | {"action":"screenshot","fullPage":true} |
+| assertVisible | selector: string | {"action":"assertVisible","selector":"main"} |
+| assertHidden | selector: string | {"action":"assertHidden","selector":".loading"} |
+| assertText | selector, text, exact? | {"action":"assertText","selector":"h1","text":"Welcome"} |
+| assertTitle | pattern: string | {"action":"assertTitle","pattern":"/.+/"} |
+| assertUrl | pattern: string | {"action":"assertUrl","pattern":"**/about"} |
+| assertCount | selector, count | {"action":"assertCount","selector":".item","count":5} |
+| scroll | selector?, direction? | {"action":"scroll","direction":"down"} |
+| press | key: string | {"action":"press","key":"Enter"} |
+| wait | ms: number | {"action":"wait","ms":1000} |
 
-// Verify hero section
-const hero = page.locator('[data-testid="hero"]');
-await expect(hero).toBeVisible();
+## Example Test
 
-// Test navigation
-await page.click('nav a[href="/about"]');
-await page.waitForURL('**/about');
-await expect(page.locator('h1')).toContainText('About');
-\`\`\`
+{
+  "id": "homepage-hero-visible",
+  "name": "Homepage hero section loads",
+  "description": "Verify the homepage loads and displays the hero section",
+  "steps": [
+    {"action": "navigate", "path": "/"},
+    {"action": "waitForLoad", "state": "networkidle"},
+    {"action": "assertVisible", "selector": "main"},
+    {"action": "assertTitle", "pattern": "/.+/"},
+    {"action": "screenshot", "fullPage": true}
+  ],
+  "flow": "homepage",
+  "viewport": {"width": 1920, "height": 1080}
+}
 
 Return ONLY valid JSON, no markdown code blocks or other text.`;
 
@@ -163,49 +171,45 @@ export async function analyzeChanges(
 export function generateInitialTests(manifest: TestManifest): TestDefinition[] {
   const tests: TestDefinition[] = [];
 
-  // Generate navigation test
+  // Generate homepage test
   tests.push({
     id: 'nav-homepage-load',
     name: 'Homepage loads successfully',
     description: 'Verify the homepage loads and displays main content',
     flow: 'navigation',
-    code: `
-await page.goto(params.previewUrl);
-await page.waitForLoadState('networkidle');
-
-// Verify page loaded
-await expect(page).toHaveTitle(/.+/);
-
-// Check for main content
-const main = page.locator('main');
-await expect(main).toBeVisible();
-`,
+    steps: [
+      { action: 'navigate', path: '/' },
+      { action: 'waitForLoad', state: 'networkidle' },
+      { action: 'assertTitle', pattern: '/.+/' },
+      { action: 'assertVisible', selector: 'main' },
+      { action: 'screenshot', fullPage: true }
+    ],
     viewport: { width: 1920, height: 1080 }
   });
 
   // Generate test for each known path
+  const seenPaths = new Set<string>(['/']);
+
   for (const [flowName, flow] of Object.entries(manifest.flows || {})) {
     if (flow.coveredPaths) {
       for (const path of flow.coveredPaths) {
-        if (path === '/') continue; // Skip homepage, already covered
+        if (seenPaths.has(path)) continue;
+        seenPaths.add(path);
+
+        const pathSlug = path.replace(/\//g, '-').slice(1) || 'home';
 
         tests.push({
-          id: `nav-${path.replace(/\//g, '-').slice(1) || 'home'}`,
+          id: `page-${pathSlug}`,
           name: `Page ${path} loads successfully`,
           description: `Verify ${path} page loads correctly`,
           flow: flowName,
-          code: `
-await page.goto(params.previewUrl + '${path}');
-await page.waitForLoadState('networkidle');
-
-// Verify page loaded
-const main = page.locator('main');
-await expect(main).toBeVisible();
-
-// Check for page heading
-const heading = page.locator('h1').first();
-await expect(heading).toBeVisible();
-`,
+          steps: [
+            { action: 'navigate', path },
+            { action: 'waitForLoad', state: 'networkidle' },
+            { action: 'assertVisible', selector: 'main' },
+            { action: 'assertVisible', selector: 'h1' },
+            { action: 'screenshot', fullPage: true }
+          ],
           viewport: { width: 1920, height: 1080 }
         });
       }
