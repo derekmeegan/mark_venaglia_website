@@ -165,6 +165,19 @@ export async function analyzeChanges(
   }
 }
 
+// Viewport configurations
+const VIEWPORTS = {
+  mobile: { name: 'mobile', width: 375, height: 667 },
+  tablet: { name: 'tablet', width: 768, height: 1024 },
+  desktop: { name: 'desktop', width: 1920, height: 1080 }
+};
+
+// Default viewports to test (can be overridden via env)
+const TEST_VIEWPORTS = (process.env.TEST_VIEWPORTS || 'mobile,desktop')
+  .split(',')
+  .map(v => v.trim().toLowerCase())
+  .filter(v => v in VIEWPORTS) as Array<keyof typeof VIEWPORTS>;
+
 /**
  * Generate a comprehensive initial test suite using substantive routines
  */
@@ -184,103 +197,108 @@ export function generateInitialTests(manifest: TestManifest): TestDefinition[] {
     allPaths.add('/');
   }
 
-  // Generate comprehensive tests for each page
+  console.log(`Generating tests for viewports: ${TEST_VIEWPORTS.join(', ')}`);
+  console.log(`Testing ${allPaths.size} pages: ${[...allPaths].join(', ')}`);
+
+  // Generate comprehensive tests for each page AND each viewport
   for (const path of allPaths) {
     const pathSlug = path === '/' ? 'homepage' : path.replace(/\//g, '-').slice(1);
 
-    // 1. Performance test
-    tests.push({
-      id: `perf-${pathSlug}`,
-      name: `Performance: ${path}`,
-      description: `Measure page load performance and Core Web Vitals for ${path}`,
-      flow: 'performance',
-      path,
-      routines: [
-        { routine: 'performance', config: { maxLoadTime: 3000, maxLCP: 2500, maxCLS: 0.1 } }
-      ],
-      viewport: { width: 1920, height: 1080 }
-    });
+    for (const vpKey of TEST_VIEWPORTS) {
+      const vp = VIEWPORTS[vpKey];
+      const vpSuffix = TEST_VIEWPORTS.length > 1 ? `-${vp.name}` : '';
 
-    // 2. Accessibility test
-    tests.push({
-      id: `a11y-${pathSlug}`,
-      name: `Accessibility: ${path}`,
-      description: `Check accessibility compliance for ${path}`,
-      flow: 'accessibility',
-      path,
-      routines: [
-        { routine: 'accessibility', config: { checkAria: true, checkAltText: true, checkHeadingOrder: true, checkKeyboardNav: true } }
-      ],
-      viewport: { width: 1920, height: 1080 }
-    });
-
-    // 3. SEO test (only for main pages)
-    if (['/', '/about', '/contact'].includes(path) || allPaths.size <= 6) {
+      // 1. Performance test
       tests.push({
-        id: `seo-${pathSlug}`,
-        name: `SEO: ${path}`,
-        description: `Check SEO fundamentals for ${path}`,
-        flow: 'seo',
+        id: `perf-${pathSlug}${vpSuffix}`,
+        name: `Performance: ${path} [${vp.name}]`,
+        description: `Measure page load performance for ${path} on ${vp.name}`,
+        flow: 'performance',
         path,
         routines: [
-          { routine: 'seo', config: { checkTitle: true, checkMetaDescription: true, checkOgTags: true, checkHeadingStructure: true } }
+          { routine: 'performance', config: { maxLoadTime: 3000, maxLCP: 2500, maxCLS: 0.1 } }
         ],
-        viewport: { width: 1920, height: 1080 }
+        viewport: { width: vp.width, height: vp.height }
+      });
+
+      // 2. Accessibility test
+      tests.push({
+        id: `a11y-${pathSlug}${vpSuffix}`,
+        name: `Accessibility: ${path} [${vp.name}]`,
+        description: `Check accessibility compliance for ${path} on ${vp.name}`,
+        flow: 'accessibility',
+        path,
+        routines: [
+          { routine: 'accessibility', config: { checkAria: true, checkAltText: true, checkHeadingOrder: true, checkKeyboardNav: true } }
+        ],
+        viewport: { width: vp.width, height: vp.height }
+      });
+
+      // 3. SEO test (only for main pages, desktop only)
+      if (vpKey === 'desktop' && (['/', '/about', '/contact'].includes(path) || allPaths.size <= 6)) {
+        tests.push({
+          id: `seo-${pathSlug}`,
+          name: `SEO: ${path}`,
+          description: `Check SEO fundamentals for ${path}`,
+          flow: 'seo',
+          path,
+          routines: [
+            { routine: 'seo', config: { checkTitle: true, checkMetaDescription: true, checkOgTags: true, checkHeadingStructure: true } }
+          ],
+          viewport: { width: vp.width, height: vp.height }
+        });
+      }
+
+      // 4. Console errors test
+      tests.push({
+        id: `console-${pathSlug}${vpSuffix}`,
+        name: `Console Errors: ${path} [${vp.name}]`,
+        description: `Check for JavaScript errors on ${path} on ${vp.name}`,
+        flow: 'console-errors',
+        path,
+        routines: [
+          { routine: 'console-errors', config: { allowWarnings: true } }
+        ],
+        viewport: { width: vp.width, height: vp.height }
+      });
+
+      // 5. Visual test
+      tests.push({
+        id: `visual-${pathSlug}${vpSuffix}`,
+        name: `Visual: ${path} [${vp.name}]`,
+        description: `Visual check for ${path} on ${vp.name}`,
+        flow: 'visual',
+        path,
+        routines: [
+          { routine: 'visual', config: { captureFullPage: true, checkImagesLoaded: true } }
+        ],
+        viewport: { width: vp.width, height: vp.height }
       });
     }
-
-    // 4. Console errors test
-    tests.push({
-      id: `console-${pathSlug}`,
-      name: `Console Errors: ${path}`,
-      description: `Check for JavaScript errors on ${path}`,
-      flow: 'console-errors',
-      path,
-      routines: [
-        { routine: 'console-errors', config: { allowWarnings: true } }
-      ],
-      viewport: { width: 1920, height: 1080 }
-    });
-
-    // 5. Visual test
-    tests.push({
-      id: `visual-${pathSlug}`,
-      name: `Visual: ${path}`,
-      description: `Visual regression check for ${path}`,
-      flow: 'visual',
-      path,
-      routines: [
-        { routine: 'visual', config: { captureFullPage: true, checkImagesLoaded: true } }
-      ],
-      viewport: { width: 1920, height: 1080 }
-    });
   }
 
-  // 6. Responsive test (just for homepage to keep run time reasonable)
+  // 6. Responsive test (tests all viewports in one test)
   tests.push({
     id: 'responsive-homepage',
     name: 'Responsive: Homepage',
-    description: 'Check responsive design across viewport sizes',
+    description: 'Check responsive design across all viewport sizes',
     flow: 'responsive',
     path: '/',
     routines: [
       {
         routine: 'responsive',
         config: {
-          viewports: [
-            { name: 'mobile', width: 375, height: 667 },
-            { name: 'tablet', width: 768, height: 1024 },
-            { name: 'desktop', width: 1920, height: 1080 }
-          ],
+          viewports: Object.values(VIEWPORTS),
           checkNoHorizontalScroll: true,
-          checkTextReadable: true
+          checkTextReadable: true,
+          checkTouchTargets: true
         }
       }
     ],
     viewport: { width: 1920, height: 1080 }
   });
 
-  // 7. Navigation test
+  // 7. Navigation test (desktop)
   tests.push({
     id: 'navigation-site',
     name: 'Navigation: Site-wide',
@@ -293,7 +311,7 @@ export function generateInitialTests(manifest: TestManifest): TestDefinition[] {
     viewport: { width: 1920, height: 1080 }
   });
 
-  // 8. Link validation
+  // 8. Link validation (desktop)
   tests.push({
     id: 'links-homepage',
     name: 'Links: Homepage',
@@ -305,6 +323,8 @@ export function generateInitialTests(manifest: TestManifest): TestDefinition[] {
     ],
     viewport: { width: 1920, height: 1080 }
   });
+
+  console.log(`Generated ${tests.length} tests total`);
 
   return tests;
 }
