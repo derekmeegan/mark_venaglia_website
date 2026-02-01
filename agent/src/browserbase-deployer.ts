@@ -228,12 +228,15 @@ async function getFunctionIdsFromBuild(
     }
 
     const build = await response.json() as {
-      functions?: Array<{ id: string; name: string }>;
+      builtFunctions?: Array<{ id: string; name: string }>;
     };
 
-    if (build.functions) {
-      for (const fn of build.functions) {
+    console.log('Build API response:', JSON.stringify(build, null, 2));
+
+    if (build.builtFunctions) {
+      for (const fn of build.builtFunctions) {
         functionIds.set(fn.name, fn.id);
+        console.log(`Found function from API: ${fn.name} -> ${fn.id}`);
       }
     }
   } catch (error) {

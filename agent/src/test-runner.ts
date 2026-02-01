@@ -43,13 +43,15 @@ async function invokeFunction(
   params: Record<string, unknown>,
   apiKey: string
 ): Promise<string> {
+  console.log(`Invoking function ${functionId} with params:`, params);
+
   const response = await fetch(`${BB_API}/functions/${functionId}/invoke`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-bb-api-key': apiKey
     },
-    body: JSON.stringify(params)
+    body: JSON.stringify({ params })  // Wrap user params in 'params' field
   });
 
   if (!response.ok) {
