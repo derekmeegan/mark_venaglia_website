@@ -152,10 +152,10 @@ BROWSERBASE_PROJECT_ID=${projectId}
 
     // Install dependencies and publish
     console.log('Installing dependencies...');
-    await execAsync('pnpm install', { cwd: tempDir });
+    await execAsync('npm install', { cwd: tempDir });
 
     console.log('Publishing functions to Browserbase...');
-    const { stdout, stderr } = await execAsync('pnpm bb publish index.ts', {
+    const { stdout, stderr } = await execAsync('npx bb publish index.ts', {
       cwd: tempDir,
       env: {
         ...process.env,
