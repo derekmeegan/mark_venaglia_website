@@ -1,9 +1,11 @@
 /**
- * Claude Analyzer - Uses Claude Agent SDK to analyze PR changes and generate tests
+ * Claude Analyzer - Uses Anthropic API to analyze PR changes and generate tests
  */
 
-import { query } from '@anthropic-ai/claude-agent-sdk';
+import Anthropic from '@anthropic-ai/sdk';
 import type { AnalysisResult, TestManifest, TestDefinition } from './types.js';
+
+const anthropic = new Anthropic();
 
 const ANALYSIS_PROMPT = `You are a senior QA engineer analyzing a PR for a Next.js website.
 Your job is to:
@@ -88,58 +90,44 @@ export async function analyzeChanges(
 
   console.log('Sending analysis request to Claude...');
 
-  const q = query({
-    prompt,
-    options: {
-      model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929',
-      maxTurns: 5,  // Allow more turns for complex analysis
-      outputFormat: {
-        type: 'json_schema',
-        schema: {
-          type: 'object',
-          properties: {
-            changedFlows: { type: 'array', items: { type: 'string' } },
-            testsToAdd: { type: 'array' },
-            testsToModify: { type: 'array' },
-            testsToRun: { type: 'array', items: { type: 'string' } },
-            summary: { type: 'string' }
-          },
-          required: ['changedFlows', 'testsToAdd', 'testsToModify', 'testsToRun', 'summary']
-        }
-      },
-      // Don't persist this session
-      persistSession: false,
-      // Disable tools - just analyze the provided diff directly
-      tools: [],
-    }
+  const response = await anthropic.messages.create({
+    model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929',
+    max_tokens: 8192,
+    messages: [
+      {
+        role: 'user',
+        content: prompt
+      }
+    ]
   });
 
+  // Extract text from response
   let resultText = '';
-
-  for await (const message of q) {
-    if (message.type === 'assistant') {
-      // Extract text content from assistant message
-      for (const block of message.message.content) {
-        if (block.type === 'text') {
-          resultText += block.text;
-        }
-      }
-    }
-
-    if (message.type === 'result') {
-      // Check for errors
-      if (message.subtype === 'error_max_turns') {
-        throw new Error('Analysis exceeded maximum turns');
-      }
+  for (const block of response.content) {
+    if (block.type === 'text') {
+      resultText += block.text;
     }
   }
+
+  // Clean up any markdown code blocks if present
+  resultText = resultText.trim();
+  if (resultText.startsWith('```json')) {
+    resultText = resultText.slice(7);
+  } else if (resultText.startsWith('```')) {
+    resultText = resultText.slice(3);
+  }
+  if (resultText.endsWith('```')) {
+    resultText = resultText.slice(0, -3);
+  }
+  resultText = resultText.trim();
 
   // Parse the JSON result
   try {
     const result = JSON.parse(resultText) as AnalysisResult;
+    console.log(`Analysis complete: ${result.summary}`);
     return result;
   } catch (error) {
-    console.error('Failed to parse Claude response:', resultText);
+    console.error('Failed to parse Claude response:', resultText.slice(0, 500));
     throw new Error(`Failed to parse analysis result: ${error}`);
   }
 }
