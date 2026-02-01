@@ -107,6 +107,23 @@ async function main() {
     console.log(`   Tests to modify: ${analysis.testsToModify.length}`);
     console.log(`   Tests to run: ${analysis.testsToRun.length}`);
 
+    // Print test scripts for visibility
+    if (analysis.testsToAdd.length > 0) {
+      console.log('\n📄 Generated Test Scripts:');
+      console.log('─'.repeat(60));
+      for (const test of analysis.testsToAdd) {
+        console.log(`\n🧪 Test: ${test.name} (${test.id})`);
+        console.log(`   Flow: ${test.flow}`);
+        console.log(`   Viewport: ${test.viewport?.width}x${test.viewport?.height}`);
+        console.log(`   Description: ${test.description}`);
+        console.log('\n   Code:');
+        console.log('   ```typescript');
+        test.code.split('\n').forEach(line => console.log(`   ${line}`));
+        console.log('   ```');
+        console.log('─'.repeat(60));
+      }
+    }
+
     // If no tests to run, report success and exit
     if (analysis.testsToRun.length === 0 && analysis.testsToAdd.length === 0) {
       console.log('\n✅ No tests to run for this PR');
