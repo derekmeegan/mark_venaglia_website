@@ -24,10 +24,17 @@ import {
   validateConfig
 } from './utils.js';
 
+// Check for --init flag
+const INIT_MODE = process.argv.includes('--init');
+
 async function main() {
   const startTime = Date.now();
 
   console.log('🤖 PR Test Agent starting...\n');
+
+  if (INIT_MODE) {
+    console.log('🚀 Running in INIT MODE - generating baseline tests for all pages\n');
+  }
 
   // Validate configuration
   const configErrors = validateConfig();
@@ -63,23 +70,36 @@ async function main() {
     }
     console.log(`   Preview ready: ${previewUrl}`);
 
-    // Step 3: Analyze changes with Claude
-    console.log('\n🧠 Step 3: Analyzing changes with Claude...');
+    // Step 3: Analyze changes with Claude (or use init mode)
     let analysis;
 
-    try {
-      analysis = await analyzeChanges(diff, manifest, context);
-    } catch (error) {
-      console.warn('Claude analysis failed, using initial tests:', error);
-      // Fall back to generating basic tests
+    if (INIT_MODE) {
+      // In init mode, generate tests for all pages in manifest
+      console.log('\n🧠 Step 3: Generating baseline tests for all pages...');
       const initialTests = generateInitialTests(manifest);
       analysis = {
-        changedFlows: ['initial-setup'],
+        changedFlows: Object.keys(manifest.flows),
         testsToAdd: initialTests,
         testsToModify: [],
         testsToRun: initialTests.map((t) => t.id),
-        summary: 'Initial test suite generated (Claude analysis unavailable)'
+        summary: 'Baseline test suite generated for all pages (init mode)'
       };
+    } else {
+      console.log('\n🧠 Step 3: Analyzing changes with Claude...');
+      try {
+        analysis = await analyzeChanges(diff, manifest, context);
+      } catch (error) {
+        console.warn('Claude analysis failed, using initial tests:', error);
+        // Fall back to generating basic tests
+        const initialTests = generateInitialTests(manifest);
+        analysis = {
+          changedFlows: ['initial-setup'],
+          testsToAdd: initialTests,
+          testsToModify: [],
+          testsToRun: initialTests.map((t) => t.id),
+          summary: 'Initial test suite generated (Claude analysis unavailable)'
+        };
+      }
     }
 
     console.log(`   Changed flows: ${analysis.changedFlows.length}`);
