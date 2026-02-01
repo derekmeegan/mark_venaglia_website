@@ -55,27 +55,28 @@ defineFn("${test.id}", async (ctx, params) => {
 
   const sessionUrl = \`https://www.browserbase.com/sessions/\${ctx.session.id}\`;
 
-  // Set Vercel bypass secret as cookie so it applies to all sub-resource requests
+  // Intercept ALL requests to add Vercel bypass header
   if (params.bypassSecret) {
-    const url = new URL(params.previewUrl);
-    await context.addCookies([{
-      name: 'x-vercel-protection-bypass',
-      value: params.bypassSecret,
-      domain: url.hostname,
-      path: '/',
-      sameSite: 'None',
-      secure: true
-    }]);
+    const previewHost = new URL(params.previewUrl).host;
+    await page.route('**/*', async (route) => {
+      const url = new URL(route.request().url());
+      // Only add bypass to requests going to the preview domain
+      if (url.host === previewHost) {
+        await route.continue({
+          headers: {
+            ...route.request().headers(),
+            'x-vercel-protection-bypass': params.bypassSecret
+          }
+        });
+      } else {
+        await route.continue();
+      }
+    });
   }
 
-  // Helper to build URL with bypass secret query param for main navigations
+  // Helper to build URL (bypass now handled via request interception)
   function buildUrl(baseUrl: string, path: string = ''): string {
-    const url = baseUrl + path;
-    if (params.bypassSecret) {
-      const separator = url.includes('?') ? '&' : '?';
-      return url + separator + 'x-vercel-protection-bypass=' + params.bypassSecret;
-    }
-    return url;
+    return baseUrl + path;
   }
 
   try {
