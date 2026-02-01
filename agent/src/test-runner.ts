@@ -6,7 +6,8 @@ import type { TestResult } from './types.js';
 
 const BB_API = 'https://api.browserbase.com/v1';
 const POLL_INTERVAL = 2000; // 2 seconds
-const MAX_WAIT_TIME = 5 * 60 * 1000; // 5 minutes per test
+const MAX_WAIT_TIME = 3 * 60 * 1000; // 3 minutes max per test
+const MAX_CONCURRENCY = parseInt(process.env.TEST_CONCURRENCY || '25', 10);
 
 interface InvocationResponse {
   id: string;
@@ -97,7 +98,46 @@ async function waitForInvocation(
 }
 
 /**
- * Run all tests in parallel and collect results
+ * Run tasks with limited concurrency
+ */
+async function runWithConcurrency<T, R>(
+  items: T[],
+  fn: (item: T) => Promise<R>,
+  concurrency: number
+): Promise<R[]> {
+  const results: R[] = [];
+  const executing: Promise<void>[] = [];
+
+  for (const item of items) {
+    const promise = fn(item).then((result) => {
+      results.push(result);
+    });
+
+    executing.push(promise as unknown as Promise<void>);
+
+    if (executing.length >= concurrency) {
+      await Promise.race(executing);
+      // Remove completed promises
+      for (let i = executing.length - 1; i >= 0; i--) {
+        const p = executing[i];
+        // Check if promise is settled by racing with an immediate resolve
+        const settled = await Promise.race([
+          p.then(() => true).catch(() => true),
+          Promise.resolve(false)
+        ]);
+        if (settled) {
+          executing.splice(i, 1);
+        }
+      }
+    }
+  }
+
+  await Promise.all(executing);
+  return results;
+}
+
+/**
+ * Run all tests with configurable concurrency and collect results
  */
 export async function runTests(
   functionIds: Map<string, string>,
@@ -114,10 +154,14 @@ export async function runTests(
     return [];
   }
 
-  console.log(`Invoking ${functionIds.size} test functions...`);
+  console.log(`Invoking ${functionIds.size} test functions (max concurrency: ${MAX_CONCURRENCY})...`);
+  console.log(`Max wait time per test: ${MAX_WAIT_TIME / 1000}s`);
 
-  // Invoke all functions in parallel
-  const invocationPromises = Array.from(functionIds.entries()).map(
+  // Invoke all functions with concurrency limit
+  const entries = Array.from(functionIds.entries());
+
+  const invocations = await runWithConcurrency(
+    entries,
     async ([testId, functionId]) => {
       try {
         const invocationId = await invokeFunction(
@@ -125,28 +169,22 @@ export async function runTests(
           { previewUrl },
           apiKey
         );
+        console.log(`✓ Invoked test ${testId}: ${invocationId}`);
         return { testId, functionId, invocationId, error: null };
       } catch (error) {
+        console.error(`✗ Failed to invoke test ${testId}: ${error}`);
         return { testId, functionId, invocationId: null, error: String(error) };
       }
-    }
+    },
+    MAX_CONCURRENCY
   );
 
-  const invocations = await Promise.all(invocationPromises);
+  // Wait for all invocations to complete with concurrency limit
+  console.log('\nWaiting for test completion...');
 
-  // Log any invocation failures
-  for (const inv of invocations) {
-    if (inv.error) {
-      console.error(`Failed to invoke test ${inv.testId}: ${inv.error}`);
-    } else {
-      console.log(`Invoked test ${inv.testId}: ${inv.invocationId}`);
-    }
-  }
-
-  // Wait for all invocations to complete
-  console.log('Waiting for test completion...');
-
-  const resultPromises = invocations.map(async (inv): Promise<TestResult> => {
+  const results = await runWithConcurrency(
+    invocations,
+    async (inv): Promise<TestResult> => {
     const startTime = Date.now();
 
     if (inv.error || !inv.invocationId) {
@@ -165,6 +203,7 @@ export async function runTests(
       const duration = Date.now() - startTime;
 
       if (status.status === 'FAILED' || !status.results) {
+        console.log(`✗ ${inv.testId}: Function execution failed (${(duration/1000).toFixed(1)}s)`);
         return {
           testId: inv.testId,
           success: false,
@@ -174,6 +213,9 @@ export async function runTests(
           sessionUrl: `https://www.browserbase.com/sessions/${status.sessionId || ''}`
         };
       }
+
+      const success = status.results.success;
+      console.log(`${success ? '✓' : '✗'} ${inv.testId}: ${success ? 'passed' : 'failed'} (${(duration/1000).toFixed(1)}s)`);
 
       return {
         testId: inv.testId,
@@ -185,7 +227,7 @@ export async function runTests(
         finalScreenshot: status.results.finalScreenshot
       };
     } catch (error) {
-      return {
+      const result: TestResult = {
         testId: inv.testId,
         success: false,
         error: String(error),
@@ -193,10 +235,12 @@ export async function runTests(
         sessionId: '',
         sessionUrl: ''
       };
+      console.log(`✗ ${inv.testId}: ${error}`);
+      return result;
     }
-  });
-
-  const results = await Promise.all(resultPromises);
+  },
+  MAX_CONCURRENCY
+  );
 
   // Log summary
   const passed = results.filter((r) => r.success).length;
