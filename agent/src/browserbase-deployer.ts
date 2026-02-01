@@ -131,26 +131,22 @@ function generateIndexFile(tests: TestDefinition[]): string {
   return imports;
 }
 
+// Max functions per batch to avoid TOO_MANY_MANIFESTS error
+const MAX_FUNCTIONS_PER_BATCH = parseInt(process.env.BB_BATCH_SIZE || '5', 10);
+
 /**
- * Deploy tests as Browser Functions to Browserbase
+ * Deploy a single batch of tests
  */
-export async function deployTests(tests: TestDefinition[]): Promise<DeploymentResult> {
-  if (tests.length === 0) {
-    return {
-      buildId: '',
-      functionIds: new Map()
-    };
-  }
+async function deployBatch(
+  tests: TestDefinition[],
+  batchIndex: number,
+  apiKey: string,
+  projectId: string
+): Promise<Map<string, string>> {
+  const functionIds = new Map<string, string>();
 
-  const apiKey = process.env.BROWSERBASE_API_KEY;
-  const projectId = process.env.BROWSERBASE_PROJECT_ID;
-
-  if (!apiKey || !projectId) {
-    throw new Error('BROWSERBASE_API_KEY and BROWSERBASE_PROJECT_ID are required');
-  }
-
-  // Create temp directory for function files
-  const tempDir = join(process.cwd(), '.bb-functions-temp');
+  // Create temp directory for this batch
+  const tempDir = join(process.cwd(), `.bb-functions-temp-${batchIndex}`);
   await mkdir(tempDir, { recursive: true });
 
   try {
@@ -194,13 +190,13 @@ BROWSERBASE_API_KEY=${apiKey}
 BROWSERBASE_PROJECT_ID=${projectId}
 `.trim());
 
-    console.log(`Generated ${tests.length} function files in ${tempDir}`);
+    console.log(`[Batch ${batchIndex + 1}] Generated ${tests.length} function files`);
 
     // Install dependencies and publish
-    console.log('Installing dependencies...');
+    console.log(`[Batch ${batchIndex + 1}] Installing dependencies...`);
     await execAsync('npm install', { cwd: tempDir });
 
-    console.log('Publishing functions to Browserbase...');
+    console.log(`[Batch ${batchIndex + 1}] Publishing functions to Browserbase...`);
     const { stdout, stderr } = await execAsync('npx bb publish index.ts', {
       cwd: tempDir,
       env: {
@@ -210,9 +206,9 @@ BROWSERBASE_PROJECT_ID=${projectId}
       }
     });
 
-    console.log('Publish output:', stdout);
+    console.log(`[Batch ${batchIndex + 1}] Publish output:`, stdout);
     if (stderr) {
-      console.error('Publish stderr:', stderr);
+      console.error(`[Batch ${batchIndex + 1}] Publish stderr:`, stderr);
     }
 
     // Parse build ID from output
@@ -220,35 +216,86 @@ BROWSERBASE_PROJECT_ID=${projectId}
     const buildId = buildIdMatch?.[1] || `build-${Date.now()}`;
 
     // Parse function IDs directly from CLI output
-    // Format: "1. function-name\n   Function ID: uuid"
-    const functionIds = new Map<string, string>();
     const functionPattern = /^\d+\.\s+(\S+)\s*\n\s*Function ID:\s*(\S+)/gm;
     let match;
     while ((match = functionPattern.exec(stdout)) !== null) {
       const [, name, id] = match;
       functionIds.set(name, id);
-      console.log(`Parsed function: ${name} -> ${id}`);
+      console.log(`[Batch ${batchIndex + 1}] Parsed function: ${name} -> ${id}`);
     }
 
     // Fallback: try API if we didn't parse any functions
     if (functionIds.size === 0) {
-      console.log('No functions parsed from CLI output, trying API...');
+      console.log(`[Batch ${batchIndex + 1}] No functions parsed from CLI output, trying API...`);
       const apiFunctions = await getFunctionIdsFromBuild(buildId, apiKey);
       for (const [name, id] of apiFunctions) {
         functionIds.set(name, id);
       }
     }
 
-    console.log(`Total functions deployed: ${functionIds.size}`);
-
-    return {
-      buildId,
-      functionIds
-    };
+    console.log(`[Batch ${batchIndex + 1}] Deployed ${functionIds.size} functions`);
+    return functionIds;
   } finally {
     // Clean up temp directory
     await rm(tempDir, { recursive: true, force: true }).catch(() => {});
   }
+}
+
+/**
+ * Deploy tests as Browser Functions to Browserbase
+ * Deploys in batches to avoid TOO_MANY_MANIFESTS error
+ */
+export async function deployTests(tests: TestDefinition[]): Promise<DeploymentResult> {
+  if (tests.length === 0) {
+    return {
+      buildId: '',
+      functionIds: new Map()
+    };
+  }
+
+  const apiKey = process.env.BROWSERBASE_API_KEY;
+  const projectId = process.env.BROWSERBASE_PROJECT_ID;
+
+  if (!apiKey || !projectId) {
+    throw new Error('BROWSERBASE_API_KEY and BROWSERBASE_PROJECT_ID are required');
+  }
+
+  // Split tests into batches
+  const batches: TestDefinition[][] = [];
+  for (let i = 0; i < tests.length; i += MAX_FUNCTIONS_PER_BATCH) {
+    batches.push(tests.slice(i, i + MAX_FUNCTIONS_PER_BATCH));
+  }
+
+  console.log(`Deploying ${tests.length} functions in ${batches.length} batch(es) (max ${MAX_FUNCTIONS_PER_BATCH} per batch)`);
+
+  // Deploy each batch sequentially
+  const allFunctionIds = new Map<string, string>();
+  const buildIds: string[] = [];
+
+  for (let i = 0; i < batches.length; i++) {
+    const batch = batches[i];
+    console.log(`\n--- Deploying batch ${i + 1}/${batches.length} (${batch.length} functions) ---`);
+
+    const batchFunctionIds = await deployBatch(batch, i, apiKey, projectId);
+
+    // Merge function IDs
+    for (const [name, id] of batchFunctionIds) {
+      allFunctionIds.set(name, id);
+    }
+
+    // Add small delay between batches to avoid rate limiting
+    if (i < batches.length - 1) {
+      console.log('Waiting 2s before next batch...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
+
+  console.log(`\nTotal functions deployed across all batches: ${allFunctionIds.size}`);
+
+  return {
+    buildId: buildIds.join(',') || `multi-batch-${Date.now()}`,
+    functionIds: allFunctionIds
+  };
 }
 
 /**
