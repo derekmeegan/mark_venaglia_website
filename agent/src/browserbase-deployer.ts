@@ -173,8 +173,27 @@ BROWSERBASE_PROJECT_ID=${projectId}
     const buildIdMatch = stdout.match(/Build ID:\s*(\S+)/i) || stdout.match(/build[_-]?id[:\s]+(\S+)/i);
     const buildId = buildIdMatch?.[1] || `build-${Date.now()}`;
 
-    // Get function IDs from the build
-    const functionIds = await getFunctionIdsFromBuild(buildId, apiKey);
+    // Parse function IDs directly from CLI output
+    // Format: "1. function-name\n   Function ID: uuid"
+    const functionIds = new Map<string, string>();
+    const functionPattern = /^\d+\.\s+(\S+)\s*\n\s*Function ID:\s*(\S+)/gm;
+    let match;
+    while ((match = functionPattern.exec(stdout)) !== null) {
+      const [, name, id] = match;
+      functionIds.set(name, id);
+      console.log(`Parsed function: ${name} -> ${id}`);
+    }
+
+    // Fallback: try API if we didn't parse any functions
+    if (functionIds.size === 0) {
+      console.log('No functions parsed from CLI output, trying API...');
+      const apiFunctions = await getFunctionIdsFromBuild(buildId, apiKey);
+      for (const [name, id] of apiFunctions) {
+        functionIds.set(name, id);
+      }
+    }
+
+    console.log(`Total functions deployed: ${functionIds.size}`);
 
     return {
       buildId,
