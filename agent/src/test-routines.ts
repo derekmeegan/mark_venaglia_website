@@ -143,23 +143,6 @@ export interface LinkValidationRoutine {
 // Code Generator - Converts routines to Playwright code
 // ============================================
 
-/**
- * Helper to build URL with Vercel bypass secret if available
- */
-function getUrlHelper(): string {
-  return `
-// Helper to build URL with Vercel bypass secret
-function buildUrl(baseUrl: string, path: string = ''): string {
-  const url = baseUrl + path;
-  if (params.bypassSecret) {
-    const separator = url.includes('?') ? '&' : '?';
-    return url + separator + 'x-vercel-protection-bypass=' + params.bypassSecret;
-  }
-  return url;
-}
-`;
-}
-
 export function routineToCode(routine: TestRoutine, path: string): string {
   switch (routine.routine) {
     case 'performance':
@@ -189,7 +172,6 @@ function generatePerformanceCode(routine: PerformanceRoutine, path: string): str
   const maxLoad = routine.config?.maxLoadTime || 3000;
 
   return `
-${getUrlHelper()}
 // Performance Test for ${path}
 const metrics = { loadTime: 0, lcp: 0, cls: 0, fid: 0, issues: [] };
 
@@ -247,7 +229,6 @@ if (metrics.issues.length > 0) {
 
 function generateAccessibilityCode(routine: AccessibilityRoutine, path: string): string {
   return `
-${getUrlHelper()}
 // Accessibility Test for ${path}
 await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('networkidle');
@@ -342,7 +323,6 @@ if (a11yResults.score < 70) {
 
 function generateSEOCode(routine: SEORoutine, path: string): string {
   return `
-${getUrlHelper()}
 // SEO Test for ${path}
 await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('domcontentloaded');
@@ -441,7 +421,6 @@ function generateResponsiveCode(routine: ResponsiveRoutine, path: string): strin
   ];
 
   return `
-${getUrlHelper()}
 // Responsive Design Test for ${path}
 const responsiveResults = { viewports: [], issues: [], passed: [] };
 
@@ -513,7 +492,6 @@ if (responsiveResults.issues.length > 3) {
 
 function generateNavigationCode(routine: NavigationRoutine, path: string): string {
   return `
-${getUrlHelper()}
 // Navigation Test for ${path}
 await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('networkidle');
@@ -578,7 +556,6 @@ function generateConsoleErrorCode(routine: ConsoleErrorRoutine, path: string): s
   const ignorePatterns = routine.config?.ignorePatterns || [];
 
   return `
-${getUrlHelper()}
 // Console Error Test for ${path}
 const consoleMessages = { errors: [], warnings: [], info: [] };
 
@@ -625,7 +602,6 @@ if (consoleMessages.warnings.length > 5) {
 
 function generateVisualCode(routine: VisualRoutine, path: string): string {
   return `
-${getUrlHelper()}
 // Visual Test for ${path}
 await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('networkidle');
@@ -694,7 +670,6 @@ if (visualResults.issues.length > 0) {
 
 function generateFormCode(routine: FormRoutine, path: string): string {
   return `
-${getUrlHelper()}
 // Form Test for ${path}
 await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('networkidle');
@@ -760,7 +735,6 @@ if (formResults.issues.length > 0) {
 
 function generateLinkCode(routine: LinkValidationRoutine, path: string): string {
   return `
-${getUrlHelper()}
 // Link Validation Test for ${path}
 await page.goto(buildUrl(params.previewUrl, '${path === '/' ? '' : path}'));
 await page.waitForLoadState('networkidle');

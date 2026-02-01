@@ -55,6 +55,16 @@ defineFn("${test.id}", async (ctx, params) => {
 
   const sessionUrl = \`https://www.browserbase.com/sessions/\${ctx.session.id}\`;
 
+  // Helper to build URL with Vercel bypass secret
+  function buildUrl(baseUrl: string, path: string = ''): string {
+    const url = baseUrl + path;
+    if (params.bypassSecret) {
+      const separator = url.includes('?') ? '&' : '?';
+      return url + separator + 'x-vercel-protection-bypass=' + params.bypassSecret;
+    }
+    return url;
+  }
+
   try {
     // Test steps (auto-generated from structured definition)
     ${testCode}
