@@ -219,6 +219,17 @@ const handleSubmit = async (e: FormEvent): Promise<void> => {
           </div>
         </div>
 
+        {/* Subscribe CTA */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-8 text-center">
+          <p className="text-gray-600 mb-3">Want to stay in the loop on tours, new artwork, and more?</p>
+          <Link
+            to="/subscribe"
+            className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full text-white bg-gold hover:bg-gold/90 transition-colors"
+          >
+            Join Our Mailing List
+          </Link>
+        </div>
+
         {/* Thank You Modal */}
         {showThankYouModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
