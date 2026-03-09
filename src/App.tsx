@@ -13,6 +13,7 @@ const Contact = lazy(() => import('./pages/Contact'));
 const CommissionDetail = lazy(() => import('./pages/CommissionDetail'));
 const Resume = lazy(() => import('./pages/Resume'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
+const Subscribe = lazy(() => import('./pages/Subscribe'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Loading fallback
@@ -42,6 +43,7 @@ function App() {
             <Route path="/corporate-solutions" element={<CorporateSolutions />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/resume" element={<Resume />} />
+            <Route path="/subscribe" element={<Subscribe />} />
             <Route path="/markspage" element={<AdminPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
