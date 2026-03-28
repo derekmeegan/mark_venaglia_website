@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 
 .env
+
+# PR Test Agent
+agent/dist
+agent/node_modules
+.bb-functions-temp/
+tests/baselines/*.png

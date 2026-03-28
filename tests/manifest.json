@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "appDescription": "Mark Venaglia's portfolio website - a React/Vite site showcasing professional tours and corporate solutions",
+  "flows": {
+    "navigation": {
+      "description": "Main site navigation between pages",
+      "coveredPaths": ["/", "/about", "/portfolio", "/tours", "/corporate-solutions", "/contact"]
+    },
+    "homepage": {
+      "description": "Homepage hero section and main content",
+      "coveredPaths": ["/"]
+    },
+    "about": {
+      "description": "About page with bio information",
+      "coveredPaths": ["/about"]
+    },
+    "portfolio": {
+      "description": "Portfolio showcase page",
+      "coveredPaths": ["/portfolio"]
+    },
+    "tours": {
+      "description": "Tours listing and details",
+      "coveredPaths": ["/tours"]
+    },
+    "corporate": {
+      "description": "Corporate solutions page",
+      "coveredPaths": ["/corporate-solutions"]
+    },
+    "contact": {
+      "description": "Contact form and booking integration",
+      "coveredPaths": ["/contact"],
+      "coveredElements": ["form", "[data-cal-link]"]
+    }
+  }
+}

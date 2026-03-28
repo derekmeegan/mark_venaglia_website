@@ -1,0 +1,240 @@
+/**
+ * Utility functions for the PR Test Agent
+ */
+
+import { readFile, writeFile } from 'fs/promises';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { join } from 'path';
+import type { TestManifest, AnalysisResult } from './types.js';
+
+const execAsync = promisify(exec);
+
+// Files to exclude from diff analysis (not relevant to E2E tests)
+// We only care about UI/app code changes, not tooling or test infrastructure
+const EXCLUDED_PATTERNS = [
+  'package-lock.json',
+  'pnpm-lock.yaml',
+  'yarn.lock',
+  '*.lock',
+  'dist/',
+  'agent/',      // Exclude the test agent itself
+  'tests/',      // Exclude test manifest and baselines
+  '.github/',    // Exclude workflow files
+  'node_modules/',
+  '*.md',
+  '*.txt',
+  '.gitignore',
+  '.env*',
+  'tsconfig*.json',
+  '*.config.js',
+  '*.config.ts',
+];
+
+const MAX_DIFF_SIZE = 50000; // 50k chars max
+
+/**
+ * Get the git diff for the current PR, filtered and truncated
+ */
+export async function getGitDiff(): Promise<string> {
+  const baseBranch = process.env.GITHUB_BASE_REF || 'main';
+
+  try {
+    // Fetch the base branch to compare against
+    await execAsync(`git fetch origin ${baseBranch} --depth=1`).catch(() => {});
+
+    // Build exclude patterns for git diff
+    const excludeArgs = EXCLUDED_PATTERNS
+      .map(p => `':(exclude)${p}'`)
+      .join(' ');
+
+    // Get the diff excluding non-essential files
+    const { stdout } = await execAsync(
+      `git diff origin/${baseBranch}...HEAD --no-color -- . ${excludeArgs}`,
+      { maxBuffer: 10 * 1024 * 1024 } // 10MB buffer for large diffs
+    );
+
+    let diff = stdout;
+
+    // If still too large, truncate with a note
+    if (diff.length > MAX_DIFF_SIZE) {
+      console.log(`Diff too large (${diff.length} chars), truncating to ${MAX_DIFF_SIZE}`);
+      diff = diff.slice(0, MAX_DIFF_SIZE) + '\n\n... [DIFF TRUNCATED - showing first 50k chars] ...\n';
+
+      // Also get list of all changed files for context
+      const { stdout: fileList } = await execAsync(
+        `git diff origin/${baseBranch}...HEAD --name-only`
+      );
+      diff += `\n## All Changed Files:\n${fileList}`;
+    }
+
+    console.log(`Diff size: ${diff.length} characters`);
+    return diff;
+  } catch (error) {
+    console.warn('Failed to get git diff, falling back to staged changes:', error);
+
+    // Fallback: just show what files changed
+    const { stdout } = await execAsync('git diff --name-only HEAD~1').catch(() => ({
+      stdout: ''
+    }));
+
+    return `Changed files:\n${stdout}`;
+  }
+}
+
+/**
+ * Get codebase context for Claude analysis
+ */
+export async function getCodebaseContext(): Promise<string> {
+  const context: string[] = [];
+
+  // Get package.json info
+  try {
+    const pkg = await readFile('package.json', 'utf-8');
+    const pkgJson = JSON.parse(pkg);
+    context.push(`## Project Info
+Name: ${pkgJson.name || 'unknown'}
+Framework: ${pkgJson.dependencies?.next ? 'Next.js' : pkgJson.dependencies?.react ? 'React' : 'unknown'}
+`);
+  } catch {
+    context.push('## Project Info\nUnable to read package.json\n');
+  }
+
+  // Get file structure
+  try {
+    const { stdout } = await execAsync(
+      'find . -type f -name "*.tsx" -o -name "*.ts" -o -name "*.jsx" -o -name "*.js" | grep -v node_modules | grep -v .next | head -50'
+    );
+    context.push(`## Key Files\n${stdout}`);
+  } catch {
+    context.push('## Key Files\nUnable to list files\n');
+  }
+
+  // Get pages/routes
+  try {
+    const { stdout: pagesStdout } = await execAsync(
+      'find ./pages ./app ./src/pages ./src/app -type f \\( -name "*.tsx" -o -name "*.ts" -o -name "*.jsx" -o -name "*.js" \\) 2>/dev/null | head -30'
+    ).catch(() => ({ stdout: '' }));
+
+    if (pagesStdout) {
+      context.push(`## Pages/Routes\n${pagesStdout}`);
+    }
+  } catch {
+    // Ignore errors
+  }
+
+  return context.join('\n');
+}
+
+/**
+ * Get the repo root directory (parent of agent directory if running from agent/)
+ */
+function getRepoRoot(): string {
+  const cwd = process.cwd();
+  // If we're in the agent directory, go up one level
+  if (cwd.endsWith('/agent') || cwd.endsWith('\\agent')) {
+    return join(cwd, '..');
+  }
+  return cwd;
+}
+
+/**
+ * Read the test manifest file
+ */
+export async function readTestManifest(): Promise<TestManifest> {
+  const repoRoot = getRepoRoot();
+  const manifestPath = join(repoRoot, 'tests', 'manifest.json');
+
+  console.log(`Reading manifest from: ${manifestPath}`);
+
+  try {
+    const content = await readFile(manifestPath, 'utf-8');
+    const manifest = JSON.parse(content) as TestManifest;
+    console.log(`Manifest loaded: ${Object.keys(manifest.flows || {}).length} flows defined`);
+    return manifest;
+  } catch (error) {
+    console.warn(`Failed to read manifest from ${manifestPath}:`, error);
+    // Return default manifest if file doesn't exist
+    return {
+      version: 1,
+      flows: {}
+    };
+  }
+}
+
+/**
+ * Update the test manifest with new/modified tests
+ */
+export async function updateTestManifest(
+  manifest: TestManifest,
+  analysis: AnalysisResult
+): Promise<void> {
+  const repoRoot = getRepoRoot();
+  const manifestPath = join(repoRoot, 'tests', 'manifest.json');
+
+  // Add new flows from tests
+  for (const test of analysis.testsToAdd) {
+    if (test.flow && !manifest.flows[test.flow]) {
+      manifest.flows[test.flow] = {
+        description: `Auto-generated flow for ${test.flow}`,
+        testFile: `e2e/${test.flow}.spec.ts`
+      };
+    }
+  }
+
+  // Increment version
+  manifest.version = (manifest.version || 0) + 1;
+
+  await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+  console.log(`Updated test manifest (version ${manifest.version})`);
+}
+
+/**
+ * Ensure required directories exist
+ */
+export async function ensureDirectories(): Promise<void> {
+  const { mkdir } = await import('fs/promises');
+
+  await mkdir(join(process.cwd(), 'tests', 'e2e'), { recursive: true });
+  await mkdir(join(process.cwd(), 'tests', 'baselines'), { recursive: true });
+}
+
+/**
+ * Parse environment variables into config
+ */
+export function parseConfig() {
+  return {
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
+    browserbaseApiKey: process.env.BROWSERBASE_API_KEY || '',
+    browserbaseProjectId: process.env.BROWSERBASE_PROJECT_ID || '',
+    vercelToken: process.env.VERCEL_TOKEN || '',
+    vercelProjectId: process.env.VERCEL_PROJECT_ID,
+    githubToken: process.env.GITHUB_TOKEN || '',
+    prNumber: parseInt(process.env.PR_NUMBER || '0', 10),
+    commitSha: process.env.GITHUB_SHA || '',
+    repoOwner: (process.env.GITHUB_REPOSITORY || '/').split('/')[0],
+    repoName: (process.env.GITHUB_REPOSITORY || '/').split('/')[1],
+    previewUrl: process.env.PREVIEW_URL
+  };
+}
+
+/**
+ * Validate required environment variables
+ */
+export function validateConfig(): string[] {
+  const errors: string[] = [];
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    errors.push('ANTHROPIC_API_KEY is required');
+  }
+
+  if (!process.env.BROWSERBASE_API_KEY) {
+    errors.push('BROWSERBASE_API_KEY is required');
+  }
+
+  if (!process.env.BROWSERBASE_PROJECT_ID) {
+    errors.push('BROWSERBASE_PROJECT_ID is required');
+  }
+
+  return errors;
+}
